@@ -29,3 +29,7 @@ AGENT.md
 PROMPTS.md
 AGENT_PORTAL.md
 PROMPTS_PORTAL.md
+
+# Web Portal Frontend
+web/node_modules/
+web/dist/

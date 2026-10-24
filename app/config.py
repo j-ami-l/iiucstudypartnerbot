@@ -74,3 +74,11 @@ class Settings(BaseModel):
 
 
 settings = Settings()
+
+
+def reload_settings() -> Settings:
+    """Reload settings from .env file."""
+    global settings
+    load_dotenv(ROOT_DIR / ".env", override=True)
+    settings = Settings()
+    return settings

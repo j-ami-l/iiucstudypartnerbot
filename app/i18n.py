@@ -76,6 +76,11 @@ STRINGS: Dict[str, Dict[str, str]] = {
         "still_weak_prefix": "⚠️ <b>Topics still needing practice:</b>\n",
         "no_more_weak": "🎉 Amazing! You have mastered all your previous weak topics!",
         "practice_stale": "This practice session expired. Send /practice to start again.",
+        # Portal strings
+        "portal_private_only": "Open me in a private chat to get your portal link.",
+        "portal_not_set_up": "The portal is not set up yet.",
+        "btn_open_portal": "🔗 Open my dashboard",
+        "portal_link_msg": "Here is your temporary login link (valid for 5 minutes):",
     },
     "bn": {
         "welcome": (
@@ -149,6 +154,11 @@ STRINGS: Dict[str, Dict[str, str]] = {
         "still_weak_prefix": "⚠️ <b>যেসব বিষয় এখনও অনুশীলনের প্রয়োজন:</b>\n",
         "no_more_weak": "🎉 চমৎকার! আপনি আপনার আগের সমস্ত দুর্বল বিষয় আয়ত্ত করে ফেলেছেন!",
         "practice_stale": "এই অনুশীলন সেশনের মেয়াদ শেষ হয়েছে। পুনরায় শুরু করতে /practice পাঠান।",
+        # Portal strings
+        "portal_private_only": "আপনার পোর্টাল লিংক পেতে আমাকে প্রাইভেট চ্যাটে মেসেজ দিন।",
+        "portal_not_set_up": "পোর্টালটি এখনও প্রস্তুত করা হয়নি।",
+        "btn_open_portal": "🔗 ড্যাশবোর্ড খুলুন",
+        "portal_link_msg": "আপনার অস্থায়ী লগইন লিংক (৫ মিনিটের জন্য কার্যকর):",
     },
 }
 

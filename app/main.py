@@ -16,6 +16,7 @@ from telegram.ext import (
 from app.config import settings
 from app.db import init_db
 from app.handlers.photo import non_photo_handler, photo_handler
+from app.handlers.portal import portal_command
 from app.handlers.practice import (
     practice_callback_handler,
     practice_command,
@@ -68,6 +69,7 @@ def build_application() -> Application:
     app.add_handler(CommandHandler("help", help_handler))
     app.add_handler(CommandHandler("weak", weak_command))
     app.add_handler(CommandHandler("practice", practice_command))
+    app.add_handler(CommandHandler("portal", portal_command))
 
     # Register photo and document image handlers
     app.add_handler(MessageHandler(filters.PHOTO, photo_handler))
