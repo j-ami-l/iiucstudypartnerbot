@@ -14,6 +14,7 @@ from telegram.ext import (
 )
 
 from app.config import settings
+from app.db import init_db
 from app.handlers.photo import non_photo_handler, photo_handler
 from app.handlers.quiz import quiz_callback_handler
 from app.handlers.start import help_handler, start_handler
@@ -78,9 +79,12 @@ def build_application() -> Application:
 
 
 def main() -> None:
-    """Initialize logging and run polling."""
+    """Initialize logging, database schema, and run polling."""
     setup_logging(settings.LOG_LEVEL)
     logger.info("SnapStudy starting")
+
+    # Initialize SQLite database schema
+    init_db(settings.DATABASE_PATH)
 
     application = build_application()
     logger.info("Starting Telegram bot polling...")
