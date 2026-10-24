@@ -63,7 +63,7 @@ class Settings(BaseModel):
         default_factory=lambda: int(os.getenv("PORTAL_PORT", "8000"))
     )
     PORTAL_TOKEN_TTL_SECONDS: int = Field(
-        default_factory=lambda: int(os.getenv("PORTAL_TOKEN_TTL_SECONDS", "300"))
+        default_factory=lambda: int(os.getenv("PORTAL_TOKEN_TTL_SECONDS", "86400"))
     )
     PORTAL_SESSION_DAYS: int = Field(
         default_factory=lambda: int(os.getenv("PORTAL_SESSION_DAYS", "7"))

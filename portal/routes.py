@@ -3,7 +3,7 @@
 import logging
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
 
 from app import db_stats
 from app.config import settings
@@ -31,7 +31,9 @@ router = APIRouter(prefix="/api")
 
 
 @router.post("/auth/exchange", response_model=OkResponse)
-def auth_exchange(payload: TokenExchangeRequest, response: Response):
+def auth_exchange(
+    payload: TokenExchangeRequest, request: Request, response: Response
+):
     """Exchange a single-use magic-link token for a signed session cookie."""
     token_h = hash_token(payload.token.strip())
     telegram_id = db_stats.consume_portal_token_sync(token_h)
@@ -41,7 +43,14 @@ def auth_exchange(payload: TokenExchangeRequest, response: Response):
         )
 
     cookie_val = sign_session_cookie(telegram_id)
-    is_secure = settings.PORTAL_BASE_URL.startswith("https://")
+    is_secure = (
+        request.url.scheme == "https"
+        or request.headers.get("x-forwarded-proto") == "https"
+        or (
+            settings.PORTAL_BASE_URL.startswith("https://")
+            and request.url.hostname not in ("localhost", "127.0.0.1")
+        )
+    )
 
     response.set_cookie(
         key=SESSION_COOKIE_NAME,
@@ -49,6 +58,7 @@ def auth_exchange(payload: TokenExchangeRequest, response: Response):
         httponly=True,
         samesite="lax",
         secure=is_secure,
+        path="/",
         max_age=settings.PORTAL_SESSION_DAYS * 86400,
     )
     return OkResponse(ok=True)
@@ -57,7 +67,9 @@ def auth_exchange(payload: TokenExchangeRequest, response: Response):
 @router.post("/auth/logout", response_model=OkResponse)
 def auth_logout(response: Response):
     """Clear session cookie and log user out."""
-    response.delete_cookie(key=SESSION_COOKIE_NAME, httponly=True, samesite="lax")
+    response.delete_cookie(
+        key=SESSION_COOKIE_NAME, path="/", httponly=True, samesite="lax"
+    )
     return OkResponse(ok=True)
 
 

@@ -231,3 +231,24 @@ class TestPortalApiIsolation(unittest.TestCase):
         self.assertEqual(resp.json(), {"ok": True})
         # Cookie deletion sends expired cookie header
         self.assertIn(SESSION_COOKIE_NAME, resp.headers.get("set-cookie", ""))
+
+    def test_spa_serving_and_static_assets(self):
+        """Verify React SPA index.html is served for client-side routes and /."""
+        from portal.main import create_app
+
+        fresh_app = create_app()
+        fresh_client = TestClient(fresh_app)
+
+        resp_root = fresh_client.get("/")
+        self.assertEqual(resp_root.status_code, 200)
+        self.assertIn("SnapStudy", resp_root.text)
+
+        resp_spa = fresh_client.get("/dashboard")
+        self.assertEqual(resp_spa.status_code, 200)
+        self.assertIn("SnapStudy", resp_spa.text)
+
+        # Unknown API route returns 404 JSON, not index.html
+        resp_api_404 = fresh_client.get("/api/nonexistent")
+        self.assertEqual(resp_api_404.status_code, 404)
+        self.assertEqual(resp_api_404.json(), {"detail": "not_found"})
+

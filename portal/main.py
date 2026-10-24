@@ -46,6 +46,8 @@ def create_app() -> FastAPI:
 
         @app.get("/{full_path:path}")
         async def serve_spa(full_path: str):
+            if full_path == "api" or full_path.startswith("api/"):
+                raise HTTPException(status_code=404, detail="not_found")
             file_path = WEB_DIST_DIR / full_path
             if full_path and file_path.is_file():
                 return FileResponse(file_path)
@@ -54,6 +56,8 @@ def create_app() -> FastAPI:
 
         @app.get("/{full_path:path}")
         async def ui_not_built(full_path: str):
+            if full_path == "api" or full_path.startswith("api/"):
+                raise HTTPException(status_code=404, detail="not_found")
             return HTMLResponse(
                 "<!DOCTYPE html><html><head><title>SnapStudy Portal</title></head>"
                 "<body style='font-family:sans-serif;padding:2rem;text-align:center;'>"
