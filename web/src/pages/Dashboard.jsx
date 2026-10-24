@@ -5,6 +5,7 @@ import Card from '../components/Card';
 import LoadingState from '../components/LoadingState';
 import EmptyState from '../components/EmptyState';
 import ErrorState from '../components/ErrorState';
+import { formatLocalDate } from '../utils/date';
 
 export default function Dashboard({ user }) {
   const navigate = useNavigate();
@@ -139,13 +140,7 @@ export default function Dashboard({ user }) {
         ) : (
           <div>
             {data.recent_notes.map((note) => {
-              const localDate = note.created_at
-                ? new Date(note.created_at.replace(' ', 'T') + 'Z').toLocaleDateString(undefined, {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric',
-                  })
-                : 'Recent';
+              const localDate = formatLocalDate(note.created_at);
 
               return (
                 <Card

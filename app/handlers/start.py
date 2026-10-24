@@ -33,6 +33,37 @@ async def start_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         await practice_command(update, context)
         return
 
+    # Deep link: /start challenge_<note_id>
+    if context.args and context.args[0].lower().startswith("challenge_"):
+        raw_id = context.args[0].split("_", 1)[1]
+        try:
+            note_id = int(raw_id)
+            note = await db.get_note_by_id(note_id)
+            if note and note.get("quiz_json"):
+                from app.services.quiz_service import QuizService
+
+                quiz_service: QuizService = (
+                    context.bot_data.get("quiz_service") or QuizService()
+                )
+                title = note.get("title") or f"Note #{note_id}"
+                await update.effective_message.reply_text(
+                    f"⚔️ <b>Classmate Challenge Accepted!</b>\n"
+                    f"You've been challenged on: <b>{title}</b>.\n"
+                    f"Let's see how high you can score! Starting quiz:",
+                    parse_mode=ParseMode.HTML,
+                )
+                await quiz_service.send_question(
+                    update=update,
+                    context=context,
+                    note_id=note_id,
+                    q_index=0,
+                    quiz_json=note["quiz_json"],
+                    lang=lang,
+                )
+                return
+        except Exception as e:
+            logger.warning("Error handling challenge deep link: %s", e)
+
     text = t("welcome", lang)
     await update.effective_message.reply_text(text, parse_mode=ParseMode.HTML)
 

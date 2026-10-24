@@ -6,6 +6,9 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Notes from './pages/Notes';
 import NoteDetail from './pages/NoteDetail';
+import Weak from './pages/Weak';
+import Mistakes from './pages/Mistakes';
+import History from './pages/History';
 import Settings from './pages/Settings';
 
 export default function App() {
@@ -30,7 +33,7 @@ export default function App() {
         {/* Magic-link token exchange page */}
         <Route path="/login" element={<Login onLoginSuccess={fetchUser} />} />
 
-        {/* Dashboard page */}
+        {/* Dashboard overview */}
         <Route
           path="/dashboard"
           element={
@@ -40,7 +43,7 @@ export default function App() {
           }
         />
 
-        {/* Notes list page */}
+        {/* Notes library */}
         <Route
           path="/notes"
           element={
@@ -50,12 +53,42 @@ export default function App() {
           }
         />
 
-        {/* Note detail page */}
+        {/* Note detail view */}
         <Route
           path="/notes/:id"
           element={
             <Layout user={user}>
               <NoteDetail user={user} />
+            </Layout>
+          }
+        />
+
+        {/* Weak topics breakdown */}
+        <Route
+          path="/weak"
+          element={
+            <Layout user={user}>
+              <Weak user={user} />
+            </Layout>
+          }
+        />
+
+        {/* Active mistake notebook */}
+        <Route
+          path="/mistakes"
+          element={
+            <Layout user={user}>
+              <Mistakes user={user} />
+            </Layout>
+          }
+        />
+
+        {/* Historical timeline & accuracy trend */}
+        <Route
+          path="/history"
+          element={
+            <Layout user={user}>
+              <History user={user} />
             </Layout>
           }
         />

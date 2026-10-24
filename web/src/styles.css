@@ -399,3 +399,121 @@ a {
   font-size: 2.5rem;
   margin-bottom: 0.75rem;
 }
+
+/* Flashcards 3D Active Recall */
+.flashcard-wrapper {
+  perspective: 1200px;
+  width: 100%;
+  min-height: 260px;
+  margin: 1.5rem 0;
+}
+
+.flashcard-inner {
+  position: relative;
+  width: 100%;
+  min-height: 260px;
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.flashcard-inner.flipped {
+  transform: rotateY(180deg);
+}
+
+.flashcard-face {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: var(--radius-md);
+  padding: 1.75rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-md);
+}
+
+.flashcard-front {
+  background: linear-gradient(145deg, rgba(22, 27, 38, 0.95), rgba(30, 41, 59, 0.8));
+}
+
+.flashcard-back {
+  transform: rotateY(180deg);
+  background: linear-gradient(145deg, rgba(15, 23, 42, 0.95), rgba(22, 27, 38, 0.9));
+  border-color: rgba(59, 130, 246, 0.35);
+}
+
+/* Leaderboard Podium */
+.podium-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+  align-items: flex-end;
+}
+
+.podium-card {
+  text-align: center;
+  padding: 1.25rem 0.75rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.podium-card.first {
+  background: linear-gradient(180deg, rgba(245, 158, 11, 0.15), var(--bg-card));
+  border-color: rgba(245, 158, 11, 0.4);
+  order: 2;
+  transform: translateY(-8px);
+}
+
+.podium-card.second {
+  background: linear-gradient(180deg, rgba(148, 163, 184, 0.15), var(--bg-card));
+  border-color: rgba(148, 163, 184, 0.4);
+  order: 1;
+}
+
+.podium-card.third {
+  background: linear-gradient(180deg, rgba(180, 83, 9, 0.15), var(--bg-card));
+  border-color: rgba(180, 83, 9, 0.4);
+  order: 3;
+}
+
+/* AI Tutor Box */
+.ai-tutor-box {
+  background: linear-gradient(135deg, rgba(30, 27, 75, 0.35), rgba(15, 23, 42, 0.75));
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.ai-input {
+  width: 100%;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 1rem;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.95rem;
+  outline: none;
+  resize: vertical;
+  min-height: 70px;
+}
+
+.ai-input:focus {
+  border-color: var(--accent-purple);
+  box-shadow: 0 0 12px rgba(139, 92, 246, 0.25);
+}
+

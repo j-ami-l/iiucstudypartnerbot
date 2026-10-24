@@ -4,6 +4,7 @@ import { api } from '../api';
 import Card from '../components/Card';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
+import { formatLocalDateTime } from '../utils/date';
 
 export default function NoteDetail({ user }) {
   const { id } = useParams();
@@ -45,12 +46,7 @@ export default function NoteDetail({ user }) {
     return null;
   }
 
-  const localDate = note.created_at
-    ? new Date(note.created_at.replace(' ', 'T') + 'Z').toLocaleString(undefined, {
-        dateStyle: 'medium',
-        timeStyle: 'short',
-      })
-    : '';
+  const localDate = formatLocalDateTime(note.created_at);
 
   const isBengali = note.language === 'bn';
 
@@ -147,12 +143,7 @@ export default function NoteDetail({ user }) {
           </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {note.attempts.map((att, aIdx) => {
-              const attemptDate = att.created_at
-                ? new Date(att.created_at.replace(' ', 'T') + 'Z').toLocaleString(undefined, {
-                    dateStyle: 'medium',
-                    timeStyle: 'short',
-                  })
-                : '';
+              const attemptDate = formatLocalDateTime(att.created_at);
               const percent = att.total > 0 ? Math.round((att.score / att.total) * 100) : 0;
 
               return (

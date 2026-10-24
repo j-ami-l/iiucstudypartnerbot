@@ -46,10 +46,6 @@ def auth_exchange(
     is_secure = (
         request.url.scheme == "https"
         or request.headers.get("x-forwarded-proto") == "https"
-        or (
-            settings.PORTAL_BASE_URL.startswith("https://")
-            and request.url.hostname not in ("localhost", "127.0.0.1")
-        )
     )
 
     response.set_cookie(

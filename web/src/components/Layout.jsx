@@ -27,6 +27,24 @@ export default function Layout({ children, user }) {
               Notes
             </NavLink>
             <NavLink
+              to="/weak"
+              className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+            >
+              Weak Topics
+            </NavLink>
+            <NavLink
+              to="/mistakes"
+              className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+            >
+              Mistakes
+            </NavLink>
+            <NavLink
+              to="/history"
+              className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+            >
+              History
+            </NavLink>
+            <NavLink
               to="/settings"
               className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
             >
@@ -40,6 +58,7 @@ export default function Layout({ children, user }) {
                   marginLeft: '0.75rem',
                   paddingLeft: '0.75rem',
                   borderLeft: '1px solid var(--border-color)',
+                  whiteSpace: 'nowrap',
                 }}
               >
                 👤 {user.name}
@@ -58,22 +77,36 @@ export default function Layout({ children, user }) {
           to="/dashboard"
           className={({ isActive }) => `bottom-tab ${isActive ? 'active' : ''}`}
         >
-          <span style={{ fontSize: '1.2rem' }}>📊</span>
+          <span style={{ fontSize: '1.15rem' }}>📊</span>
           <span>Dashboard</span>
         </NavLink>
         <NavLink
           to="/notes"
           className={({ isActive }) => `bottom-tab ${isActive ? 'active' : ''}`}
         >
-          <span style={{ fontSize: '1.2rem' }}>📖</span>
+          <span style={{ fontSize: '1.15rem' }}>📖</span>
           <span>Notes</span>
         </NavLink>
         <NavLink
-          to="/settings"
+          to="/weak"
           className={({ isActive }) => `bottom-tab ${isActive ? 'active' : ''}`}
         >
-          <span style={{ fontSize: '1.2rem' }}>⚙️</span>
-          <span>Settings</span>
+          <span style={{ fontSize: '1.15rem' }}>🎯</span>
+          <span>Weak</span>
+        </NavLink>
+        <NavLink
+          to="/mistakes"
+          className={({ isActive }) => `bottom-tab ${isActive ? 'active' : ''}`}
+        >
+          <span style={{ fontSize: '1.15rem' }}>✏️</span>
+          <span>Mistakes</span>
+        </NavLink>
+        <NavLink
+          to="/history"
+          className={({ isActive }) => `bottom-tab ${isActive ? 'active' : ''}`}
+        >
+          <span style={{ fontSize: '1.15rem' }}>📈</span>
+          <span>History</span>
         </NavLink>
       </nav>
     </div>
