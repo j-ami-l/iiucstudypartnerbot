@@ -18,7 +18,10 @@ STRINGS: Dict[str, Dict[str, str]] = {
             "3. I will read your notes and generate a study summary and quiz.\n\n"
             "Commands:\n"
             "/start - Welcome message\n"
-            "/help - Instructions"
+            "/help - Instructions\n"
+            "/weak - Show my weak topics\n"
+            "/practice - Practice my mistakes\n"
+            "/portal - Open my study dashboard"
         ),
         "reading_notes": "⏳ Reading your notes…",
         "photo_received": "✅ Got your photo ({width}x{height}, {size_kb:.1f} KB)",
@@ -40,6 +43,9 @@ STRINGS: Dict[str, Dict[str, str]] = {
         "btn_see_score": "See Score 📊",
         "btn_retry_quiz": "🔁 Retry Quiz",
         "btn_new_note": "📷 New Note",
+        "btn_practice_mistakes": "🎯 Practice mistakes",
+        "btn_practice": "🎯 Practice",
+        "btn_practice_again": "🔁 Practice Again",
         "question_header": "📝 <b>Question {current} of {total}</b>",
         "answer_correct": "✅ <b>Correct!</b>",
         "answer_incorrect": "❌ <b>Incorrect!</b> Correct answer: <b>{correct_letter}</b>",
@@ -55,6 +61,21 @@ STRINGS: Dict[str, Dict[str, str]] = {
         "stale_quiz": "This quiz expired. Send the note again.",
         "already_answered": "You have already answered this question.",
         "regenerating": "⏳ Regenerating study summary…",
+        # P5 Weak topics & Practice strings
+        "no_mistakes": "No mistakes to practice 🎉. Take a quiz first.",
+        "take_quiz_first": "Take a quiz first to identify weak topics.",
+        "weak_topics_title": "🎯 <b>Your Weak Topics:</b>\n\n",
+        "weak_topic_item": "• <b>{topic}</b> — {accuracy}% ({correct}/{attempts} correct)\n",
+        "all_topics_strong": "🎉 You don't have any weak topics right now! Great job!",
+        "practice_header": "🎯 <b>Practice Question {current} of {total}</b>\n<i>Topic: {topic}</i>",
+        "practice_completed": (
+            "🎯 <b>Practice Completed!</b>\n\n"
+            "Your Score: <b>{score} / {total}</b> ({percentage}%)\n\n"
+            "{weak_summary}"
+        ),
+        "still_weak_prefix": "⚠️ <b>Topics still needing practice:</b>\n",
+        "no_more_weak": "🎉 Amazing! You have mastered all your previous weak topics!",
+        "practice_stale": "This practice session expired. Send /practice to start again.",
     },
     "bn": {
         "welcome": (
@@ -70,7 +91,10 @@ STRINGS: Dict[str, Dict[str, str]] = {
             "৩. আমি নোট পড়ে সারসংক্ষেপ ও কুইজ তৈরি করব।\n\n"
             "কমান্ডসমূহ:\n"
             "/start - স্বাগতম বার্তা\n"
-            "/help - নির্দেশাবলী"
+            "/help - নির্দেশাবলী\n"
+            "/weak - দুর্বল বিষয়সমূহ দেখুন\n"
+            "/practice - ভুল প্রশ্নগুলো অনুশীলন করুন\n"
+            "/portal - স্টাডি ড্যাশবোর্ড খুলুন"
         ),
         "reading_notes": "⏳ আপনার নোট পড়া হচ্ছে…",
         "photo_received": "✅ আপনার ছবি পেয়েছি ({width}x{height}, {size_kb:.1f} KB)",
@@ -92,6 +116,9 @@ STRINGS: Dict[str, Dict[str, str]] = {
         "btn_see_score": "স্কোর দেখুন 📊",
         "btn_retry_quiz": "🔁 আবার চেষ্টা করুন",
         "btn_new_note": "📷 নতুন নোট",
+        "btn_practice_mistakes": "🎯 ভুলগুলো অনুশীলন",
+        "btn_practice": "🎯 অনুশীলন",
+        "btn_practice_again": "🔁 পুনরায় অনুশীলন",
         "question_header": "📝 <b>প্রশ্ন {current}/{total}</b>",
         "answer_correct": "✅ <b>সঠিক উত্তর!</b>",
         "answer_incorrect": "❌ <b>ভুল উত্তর!</b> সঠিক উত্তর: <b>{correct_letter}</b>",
@@ -107,6 +134,21 @@ STRINGS: Dict[str, Dict[str, str]] = {
         "stale_quiz": "এই কুইজের মেয়াদ শেষ হয়েছে। আবার নোট পাঠান।",
         "already_answered": "আপনি ইতিমধ্যে এই প্রশ্নের উত্তর দিয়েছেন।",
         "regenerating": "⏳ পুনরায় তৈরি করা হচ্ছে…",
+        # P5 Weak topics & Practice strings
+        "no_mistakes": "অনুশীলন করার মতো কোনো ভুল নেই 🎉। প্রথমে একটি কুইজ দিন।",
+        "take_quiz_first": "দুর্বল বিষয় শনাক্ত করতে প্রথমে একটি কুইজ দিন।",
+        "weak_topics_title": "🎯 <b>আপনার দুর্বল বিষয়সমূহ:</b>\n\n",
+        "weak_topic_item": "• <b>{topic}</b> — {accuracy}% ({correct}/{attempts} সঠিক)\n",
+        "all_topics_strong": "🎉 আপনার বর্তমানে কোনো দুর্বল বিষয় নেই! দারুণ প্রস্তুতি!",
+        "practice_header": "🎯 <b>অনুশীলন প্রশ্ন {current}/{total}</b>\n<i>বিষয়: {topic}</i>",
+        "practice_completed": (
+            "🎯 <b>অনুশীলন সম্পন্ন হয়েছে!</b>\n\n"
+            "আপনার স্কোর: <b>{score} / {total}</b> ({percentage}%)\n\n"
+            "{weak_summary}"
+        ),
+        "still_weak_prefix": "⚠️ <b>যেসব বিষয় এখনও অনুশীলনের প্রয়োজন:</b>\n",
+        "no_more_weak": "🎉 চমৎকার! আপনি আপনার আগের সমস্ত দুর্বল বিষয় আয়ত্ত করে ফেলেছেন!",
+        "practice_stale": "এই অনুশীলন সেশনের মেয়াদ শেষ হয়েছে। পুনরায় শুরু করতে /practice পাঠান।",
     },
 }
 

@@ -16,10 +16,16 @@ from telegram.ext import (
 from app.config import settings
 from app.db import init_db
 from app.handlers.photo import non_photo_handler, photo_handler
+from app.handlers.practice import (
+    practice_callback_handler,
+    practice_command,
+    weak_command,
+)
 from app.handlers.quiz import quiz_callback_handler
 from app.handlers.start import help_handler, start_handler
 from app.i18n import t
 from app.logging_setup import setup_logging
+from app.services.practice_service import PracticeService
 from app.services.quiz_service import QuizService
 from app.services.study_service import StudyService
 
@@ -55,16 +61,22 @@ def build_application() -> Application:
     # Register services via bot_data
     app.bot_data["study_service"] = StudyService()
     app.bot_data["quiz_service"] = QuizService()
+    app.bot_data["practice_service"] = PracticeService()
 
     # Register command handlers
     app.add_handler(CommandHandler("start", start_handler))
     app.add_handler(CommandHandler("help", help_handler))
+    app.add_handler(CommandHandler("weak", weak_command))
+    app.add_handler(CommandHandler("practice", practice_command))
 
     # Register photo and document image handlers
     app.add_handler(MessageHandler(filters.PHOTO, photo_handler))
     app.add_handler(MessageHandler(filters.Document.IMAGE, photo_handler))
 
-    # Register callback query handler for quiz buttons and actions
+    # Register callback query handlers (practice patterns first, then quiz fallback)
+    app.add_handler(
+        CallbackQueryHandler(practice_callback_handler, pattern="^(qp:|act:practice)")
+    )
     app.add_handler(CallbackQueryHandler(quiz_callback_handler))
 
     # Polite fallback for non-photo text messages

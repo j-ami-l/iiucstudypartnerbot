@@ -44,6 +44,33 @@ class Settings(BaseModel):
     MAX_DOWNLOAD_MB: int = Field(
         default_factory=lambda: int(os.getenv("MAX_DOWNLOAD_MB", "10"))
     )
+    WEAK_MIN_ATTEMPTS: int = Field(
+        default_factory=lambda: int(os.getenv("WEAK_MIN_ATTEMPTS", "2"))
+    )
+    WEAK_ACCURACY_THRESHOLD: int = Field(
+        default_factory=lambda: int(os.getenv("WEAK_ACCURACY_THRESHOLD", "60"))
+    )
+    PORTAL_BASE_URL: str = Field(
+        default_factory=lambda: os.getenv("PORTAL_BASE_URL", "").rstrip("/")
+    )
+    PORTAL_SECRET: str = Field(
+        default_factory=lambda: os.getenv("PORTAL_SECRET", "").strip()
+    )
+    PORTAL_HOST: str = Field(
+        default_factory=lambda: os.getenv("PORTAL_HOST", "127.0.0.1").strip()
+    )
+    PORTAL_PORT: int = Field(
+        default_factory=lambda: int(os.getenv("PORTAL_PORT", "8000"))
+    )
+    PORTAL_TOKEN_TTL_SECONDS: int = Field(
+        default_factory=lambda: int(os.getenv("PORTAL_TOKEN_TTL_SECONDS", "300"))
+    )
+    PORTAL_SESSION_DAYS: int = Field(
+        default_factory=lambda: int(os.getenv("PORTAL_SESSION_DAYS", "7"))
+    )
+    BOT_USERNAME: str = Field(
+        default_factory=lambda: os.getenv("BOT_USERNAME", "").lstrip("@").strip()
+    )
 
 
 settings = Settings()

@@ -214,11 +214,20 @@ async def quiz_callback_handler(
                     logger.error("Failed to save quiz attempt: %s", err)
 
             score_text = quiz_service.format_score_card(quiz_state, lang)
+            has_mistakes = False
+            try:
+                mistakes_count = await db_stats.count_mistakes(user.id)
+                has_mistakes = mistakes_count > 0
+            except Exception as err:
+                logger.warning("Could not count mistakes: %s", err)
+
             await _safe_edit(
                 query,
                 score_text,
                 parse_mode=ParseMode.HTML,
-                reply_markup=quiz_finished_keyboard(lang, note_id=note_id),
+                reply_markup=quiz_finished_keyboard(
+                    lang, note_id=note_id, has_mistakes=has_mistakes
+                ),
             )
         return
 

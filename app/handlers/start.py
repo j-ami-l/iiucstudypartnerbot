@@ -25,6 +25,14 @@ async def start_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     await db.upsert_user(user.id, name=user.full_name, language=lang)
 
     logger.info("User %s (%s) started the bot", user.id, user.full_name)
+
+    # Deep link: /start practice
+    if context.args and context.args[0].lower() == "practice":
+        from app.handlers.practice import practice_command
+
+        await practice_command(update, context)
+        return
+
     text = t("welcome", lang)
     await update.effective_message.reply_text(text, parse_mode=ParseMode.HTML)
 

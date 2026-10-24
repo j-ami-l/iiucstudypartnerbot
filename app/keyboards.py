@@ -47,7 +47,9 @@ def next_question_keyboard(
 
 
 def quiz_finished_keyboard(
-    lang: str = "en", note_id: Optional[int] = None
+    lang: str = "en",
+    note_id: Optional[int] = None,
+    has_mistakes: bool = False,
 ) -> InlineKeyboardMarkup:
     """Keyboard shown on the quiz completion score card."""
     retry_data = (
@@ -59,4 +61,64 @@ def quiz_finished_keyboard(
             InlineKeyboardButton(t("btn_new_note", lang), callback_data="act:new_note"),
         ]
     ]
+    if has_mistakes:
+        keyboard.insert(
+            0,
+            [
+                InlineKeyboardButton(
+                    t("btn_practice_mistakes", lang), callback_data="act:practice"
+                )
+            ],
+        )
     return InlineKeyboardMarkup(keyboard)
+
+
+def weak_topics_keyboard(lang: str = "en") -> InlineKeyboardMarkup:
+    """Keyboard attached to /weak command output."""
+    keyboard = [
+        [
+            InlineKeyboardButton(
+                t("btn_practice", lang), callback_data="act:practice"
+            )
+        ]
+    ]
+    return InlineKeyboardMarkup(keyboard)
+
+
+def practice_mcq_keyboard(q_index: int) -> InlineKeyboardMarkup:
+    """Keyboard for answering a practice question with A, B, C, D choices."""
+    prefix = f"qp:ans:{q_index}"
+    keyboard = [
+        [
+            InlineKeyboardButton("A", callback_data=f"{prefix}:0"),
+            InlineKeyboardButton("B", callback_data=f"{prefix}:1"),
+            InlineKeyboardButton("C", callback_data=f"{prefix}:2"),
+            InlineKeyboardButton("D", callback_data=f"{prefix}:3"),
+        ]
+    ]
+    return InlineKeyboardMarkup(keyboard)
+
+
+def practice_next_keyboard(
+    lang: str = "en", is_last: bool = False
+) -> InlineKeyboardMarkup:
+    """Keyboard shown after answering a practice question."""
+    label = t("btn_see_score" if is_last else "btn_next", lang)
+    keyboard = [[InlineKeyboardButton(label, callback_data="qp:next")]]
+    return InlineKeyboardMarkup(keyboard)
+
+
+def practice_finished_keyboard(lang: str = "en") -> InlineKeyboardMarkup:
+    """Keyboard shown on practice completion scorecard."""
+    keyboard = [
+        [
+            InlineKeyboardButton(
+                t("btn_practice_again", lang), callback_data="qp:retry"
+            ),
+            InlineKeyboardButton(
+                t("btn_new_note", lang), callback_data="act:new_note"
+            ),
+        ]
+    ]
+    return InlineKeyboardMarkup(keyboard)
+
