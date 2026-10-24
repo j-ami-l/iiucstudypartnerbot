@@ -41,6 +41,9 @@ class Settings(BaseModel):
     MAX_IMAGE_SIDE: int = Field(
         default_factory=lambda: int(os.getenv("MAX_IMAGE_SIDE", "1280"))
     )
+    MAX_DOWNLOAD_MB: int = Field(
+        default_factory=lambda: int(os.getenv("MAX_DOWNLOAD_MB", "10"))
+    )
 
 
 settings = Settings()

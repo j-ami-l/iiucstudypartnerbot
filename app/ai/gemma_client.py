@@ -1,5 +1,6 @@
 """Client for communicating with the hosted Gemma model."""
 
+import asyncio
 import base64
 import logging
 import time
@@ -72,6 +73,9 @@ class GemmaClient:
     async def analyze_note(self, image_bytes: bytes, language: str = "en") -> str:
         """Send note image and study prompt to Gemma and return raw model response text.
 
+        Automatically retries fast transient failures (HTTP 429, 5xx, connection errors)
+        once with a short backoff (AGENT.md Sec 4.4 Rule 8).
+
         Args:
             image_bytes: Raw bytes of the image file.
             language: Target language ('en' or 'bn').
@@ -81,7 +85,7 @@ class GemmaClient:
 
         Raises:
             GemmaAuthError: Missing or invalid API key.
-            GemmaTimeout: Request exceeded configured timeout.
+            GemmaTimeout: Request exceeded configured timeout (no auto-retry).
             GemmaAPIError: Upstream API failure or bad HTTP status.
         """
         if not self.api_key:
@@ -117,49 +121,83 @@ class GemmaClient:
             "temperature": 0.2,
         }
 
-        start_time = time.perf_counter()
-        try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.post(endpoint, headers=headers, json=payload)
+        max_attempts = 2
+        for attempt in range(1, max_attempts + 1):
+            start_time = time.perf_counter()
+            try:
+                async with httpx.AsyncClient(timeout=self.timeout) as client:
+                    response = await client.post(endpoint, headers=headers, json=payload)
 
-            latency = time.perf_counter() - start_time
-            logger.info("Gemma API call finished in %.2fs", latency)
-
-            if response.status_code in (401, 403):
-                logger.error("Gemma authentication error (HTTP %d)", response.status_code)
-                raise GemmaAuthError(
-                    f"Authentication failed with status {response.status_code}. Verify GEMMA_API_KEY."
+                latency = time.perf_counter() - start_time
+                logger.info(
+                    "Gemma API call (attempt %d/%d) finished in %.2fs",
+                    attempt,
+                    max_attempts,
+                    latency,
                 )
 
-            if response.is_error:
-                logger.error(
-                    "Gemma API returned HTTP %d: %s",
-                    response.status_code,
-                    response.text[:300],
-                )
-                raise GemmaAPIError(
-                    f"API returned status {response.status_code}: {response.text[:150]}",
-                    status_code=response.status_code,
-                )
+                if response.status_code in (401, 403):
+                    logger.error("Gemma authentication error (HTTP %d)", response.status_code)
+                    raise GemmaAuthError(
+                        f"Authentication failed with status {response.status_code}. Verify GEMMA_API_KEY."
+                    )
 
-            data = response.json()
-            choices = data.get("choices", [])
-            if not choices:
-                raise GemmaAPIError("Gemma API response contained no choices")
+                # Transient rate-limits or server errors: retry once with short backoff
+                if response.status_code in (429, 500, 502, 503, 504) and attempt < max_attempts:
+                    logger.warning(
+                        "Transient Gemma API status %d on attempt %d. Retrying in 2.0s...",
+                        response.status_code,
+                        attempt,
+                    )
+                    await asyncio.sleep(2.0)
+                    continue
 
-            content = choices[0].get("message", {}).get("content", "")
-            if not content:
-                raise GemmaAPIError("Gemma API returned an empty message content")
+                if response.is_error:
+                    logger.error(
+                        "Gemma API returned HTTP %d: %s",
+                        response.status_code,
+                        response.text[:300],
+                    )
+                    raise GemmaAPIError(
+                        f"API returned status {response.status_code}: {response.text[:150]}",
+                        status_code=response.status_code,
+                    )
 
-            return content
+                data = response.json()
+                choices = data.get("choices", [])
+                if not choices:
+                    raise GemmaAPIError("Gemma API response contained no choices")
 
-        except httpx.TimeoutException as err:
-            latency = time.perf_counter() - start_time
-            logger.warning("Gemma request timed out after %.2fs", latency)
-            raise GemmaTimeout(
-                f"Gemma API request timed out after {latency:.2f}s"
-            ) from err
-        except httpx.RequestError as err:
-            latency = time.perf_counter() - start_time
-            logger.error("Gemma network request error after %.2fs: %s", latency, err)
-            raise GemmaAPIError(f"Network error contacting Gemma API: {err}") from err
+                content = choices[0].get("message", {}).get("content", "")
+                if not content:
+                    raise GemmaAPIError("Gemma API returned an empty message content")
+
+                return content
+
+            except httpx.TimeoutException as err:
+                latency = time.perf_counter() - start_time
+                # Do NOT auto-retry on timeout (AGENT.md Sec 4.4 Rule 8)
+                logger.warning("Gemma request timed out after %.2fs", latency)
+                raise GemmaTimeout(
+                    f"Gemma API request timed out after {latency:.2f}s"
+                ) from err
+
+            except (httpx.ConnectError, httpx.RemoteProtocolError) as err:
+                latency = time.perf_counter() - start_time
+                if attempt < max_attempts:
+                    logger.warning(
+                        "Gemma connection error on attempt %d (%s). Retrying in 2.0s...",
+                        attempt,
+                        err,
+                    )
+                    await asyncio.sleep(2.0)
+                    continue
+                logger.error("Gemma network connection error after %.2fs: %s", latency, err)
+                raise GemmaAPIError(f"Network error contacting Gemma API: {err}") from err
+
+            except httpx.RequestError as err:
+                latency = time.perf_counter() - start_time
+                logger.error("Gemma network request error after %.2fs: %s", latency, err)
+                raise GemmaAPIError(f"Network error contacting Gemma API: {err}") from err
+
+        raise GemmaAPIError("Gemma API failed after retry attempts")

@@ -3,6 +3,7 @@
 import logging
 from telegram import Update
 from telegram.constants import ParseMode
+from telegram.error import BadRequest, RetryAfter
 from telegram.ext import ContextTypes
 
 from app import db
@@ -21,10 +22,28 @@ from app.utils.formatting import format_study_summary, split_message
 logger = logging.getLogger(__name__)
 
 
+async def _safe_edit(query, text: str, **kwargs) -> bool:
+    """Safely edit query message text ignoring message not modified and handling RetryAfter."""
+    try:
+        await query.edit_message_text(text, **kwargs)
+        return True
+    except BadRequest as err:
+        if "message is not modified" in str(err).lower():
+            return True
+        logger.warning("BadRequest during query edit: %s", err)
+        return False
+    except RetryAfter as err:
+        logger.warning("Telegram RetryAfter: %ds. Skipping edit.", err.retry_after)
+        return False
+    except Exception as err:
+        logger.error("Error editing message: %s", err)
+        return False
+
+
 async def quiz_callback_handler(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
-    """Route all quiz-related inline button callbacks with SQLite persistence."""
+    """Route all quiz-related inline button callbacks with SQLite persistence and safe edits."""
     query = update.callback_query
     if not query or not query.data or not update.effective_user:
         return
@@ -46,7 +65,6 @@ async def quiz_callback_handler(
             else None
         )
         if not study_result and note_id is not None:
-            # Attempt recovery from database
             note_row = await db.get_note_by_id(note_id)
             if note_row and note_row.get("quiz_json"):
                 study_result = StudyResult.model_validate_json(
@@ -56,9 +74,7 @@ async def quiz_callback_handler(
                     context.user_data["last_study_result"] = study_result
 
         if not study_result or not study_result.mcqs:
-            await query.edit_message_text(
-                t("stale_quiz", lang), parse_mode=ParseMode.HTML
-            )
+            await _safe_edit(query, t("stale_quiz", lang), parse_mode=ParseMode.HTML)
             return
 
         quiz_state = quiz_service.create_quiz(study_result)
@@ -69,7 +85,8 @@ async def quiz_callback_handler(
 
         cur_num, mcq, total = quiz_service.get_current_question(quiz_state)
         q_text = quiz_service.format_question_message(mcq, cur_num, total, lang)
-        await query.edit_message_text(
+        await _safe_edit(
+            query,
             q_text,
             parse_mode=ParseMode.HTML,
             reply_markup=mcq_keyboard(quiz_state.current_index, note_id=note_id),
@@ -117,7 +134,8 @@ async def quiz_callback_handler(
             current_mcq, is_correct, correct_letter, lang=lang
         )
 
-        await query.edit_message_text(
+        await _safe_edit(
+            query,
             feedback_text,
             parse_mode=ParseMode.HTML,
             reply_markup=next_question_keyboard(
@@ -138,9 +156,7 @@ async def quiz_callback_handler(
             context.user_data.get("quiz_state") if context.user_data else None
         )
         if not quiz_state:
-            await query.edit_message_text(
-                t("stale_quiz", lang), parse_mode=ParseMode.HTML
-            )
+            await _safe_edit(query, t("stale_quiz", lang), parse_mode=ParseMode.HTML)
             return
 
         has_next = quiz_service.next_question(quiz_state)
@@ -149,7 +165,8 @@ async def quiz_callback_handler(
             q_text = quiz_service.format_question_message(
                 mcq, cur_num, total, lang
             )
-            await query.edit_message_text(
+            await _safe_edit(
+                query,
                 q_text,
                 parse_mode=ParseMode.HTML,
                 reply_markup=mcq_keyboard(
@@ -177,7 +194,8 @@ async def quiz_callback_handler(
                     logger.error("Failed to save quiz attempt: %s", err)
 
             score_text = quiz_service.format_score_card(quiz_state, lang)
-            await query.edit_message_text(
+            await _safe_edit(
+                query,
                 score_text,
                 parse_mode=ParseMode.HTML,
                 reply_markup=quiz_finished_keyboard(lang, note_id=note_id),
@@ -205,9 +223,7 @@ async def quiz_callback_handler(
                 )
 
         if not study_result or not study_result.mcqs:
-            await query.edit_message_text(
-                t("stale_quiz", lang), parse_mode=ParseMode.HTML
-            )
+            await _safe_edit(query, t("stale_quiz", lang), parse_mode=ParseMode.HTML)
             return
 
         quiz_state = quiz_service.create_quiz(study_result)
@@ -216,7 +232,8 @@ async def quiz_callback_handler(
 
         cur_num, mcq, total = quiz_service.get_current_question(quiz_state)
         q_text = quiz_service.format_question_message(mcq, cur_num, total, lang)
-        await query.edit_message_text(
+        await _safe_edit(
+            query,
             q_text,
             parse_mode=ParseMode.HTML,
             reply_markup=mcq_keyboard(quiz_state.current_index, note_id=note_id),
@@ -250,9 +267,7 @@ async def quiz_callback_handler(
                 )
             return
 
-        await query.edit_message_text(
-            t("regenerating", lang), parse_mode=ParseMode.HTML
-        )
+        await _safe_edit(query, t("regenerating", lang), parse_mode=ParseMode.HTML)
         study_service: StudyService = (
             context.bot_data.get("study_service") or StudyService()
         )
@@ -277,7 +292,8 @@ async def quiz_callback_handler(
                 context.user_data["last_note_id"] = new_note_id
 
             chunks = split_message(formatted_text)
-            await query.edit_message_text(
+            await _safe_edit(
+                query,
                 chunks[0],
                 parse_mode=ParseMode.HTML,
                 reply_markup=summary_keyboard(lang, note_id=new_note_id),
@@ -289,7 +305,5 @@ async def quiz_callback_handler(
                     )
         except Exception as err:
             logger.error("Error during regeneration: %s", err)
-            await query.edit_message_text(
-                t("error_generic", lang), parse_mode=ParseMode.HTML
-            )
+            await _safe_edit(query, t("error_generic", lang), parse_mode=ParseMode.HTML)
         return
