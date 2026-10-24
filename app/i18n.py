@@ -1,6 +1,6 @@
 """Internationalization (i18n) strings for SnapStudy AI in English and Bangla."""
 
-from typing import Dict, Any
+from typing import Any, Dict
 
 STRINGS: Dict[str, Dict[str, str]] = {
     "en": {
@@ -24,7 +24,14 @@ STRINGS: Dict[str, Dict[str, str]] = {
         "photo_received": "✅ Got your photo ({width}x{height}, {size_kb:.1f} KB)",
         "send_photo_prompt": "Send me a photo of your notes 📷",
         "invalid_file": "Please send a valid image file of your notes (JPEG or PNG).",
-        "error_generic": "Something went wrong while processing your photo. Please try again.",
+        "summary_heading": "📖 <b>Summary</b>",
+        "key_points_heading": "💡 <b>Key Points</b>",
+        "difficult_terms_heading": "🔍 <b>Difficult Terms</b>",
+        "unreadable_error": "I couldn't read this. Make sure the text is clear and well lit.",
+        "timeout_error": "That took too long. Please try again, or send a clearer photo.",
+        "api_error": "I'm having trouble reading notes right now. Try again in a minute.",
+        "invalid_json_error": "I couldn't understand that photo. Try a clearer, closer shot.",
+        "error_generic": "Something went wrong. Please try again.",
     },
     "bn": {
         "welcome": (
@@ -46,7 +53,14 @@ STRINGS: Dict[str, Dict[str, str]] = {
         "photo_received": "✅ আপনার ছবি পেয়েছি ({width}x{height}, {size_kb:.1f} KB)",
         "send_photo_prompt": "আপনার পড়ার নোটের একটি ছবি পাঠান 📷",
         "invalid_file": "অনুগ্রহ করে আপনার পড়ার নোটের একটি বৈধ ছবি পাঠান (JPEG বা PNG)।",
-        "error_generic": "ছবি প্রসেস করার সময় একটি সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।",
+        "summary_heading": "📖 <b>সারসংক্ষেপ</b>",
+        "key_points_heading": "💡 <b>মূল বিষয়সমূহ</b>",
+        "difficult_terms_heading": "🔍 <b>কঠিন শব্দার্থ</b>",
+        "unreadable_error": "এটি পড়া সম্ভব হয়নি। ছবিটি স্পষ্ট এবং পর্যাপ্ত আলোতে তোলা হয়েছে কি না নিশ্চিত করুন।",
+        "timeout_error": "অনেক বেশি সময় লেগেছে। অনুগ্রহ করে আবার চেষ্টা করুন বা আরও স্পষ্ট ছবি পাঠান।",
+        "api_error": "বর্তমানে নোট পড়তে সমস্যা হচ্ছে। একটু পরে আবার চেষ্টা করুন।",
+        "invalid_json_error": "ছবিটি বুঝতে পারিনি। আরও কাছ থেকে স্পষ্ট ছবি তুলে পাঠানোর চেষ্টা করুন।",
+        "error_generic": "কিছু ভুল হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।",
     },
 }
 

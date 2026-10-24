@@ -17,6 +17,7 @@ from app.handlers.photo import non_photo_handler, photo_handler
 from app.handlers.start import help_handler, start_handler
 from app.i18n import t
 from app.logging_setup import setup_logging
+from app.services.study_service import StudyService
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +47,9 @@ def build_application() -> Application:
         sys.exit(1)
 
     app = Application.builder().token(settings.TELEGRAM_TOKEN).build()
+
+    # Register services via bot_data
+    app.bot_data["study_service"] = StudyService()
 
     # Register command handlers
     app.add_handler(CommandHandler("start", start_handler))

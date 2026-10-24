@@ -5,15 +5,22 @@ from telegram import Update
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
 
+from app.ai.gemma_client import GemmaAPIError, GemmaAuthError, GemmaTimeout
 from app.config import settings
 from app.i18n import t
+from app.services.study_service import (
+    InvalidJSONError,
+    StudyService,
+    UnreadableNoteError,
+)
+from app.utils.formatting import format_study_summary, split_message
 from app.utils.image import process_image
 
 logger = logging.getLogger(__name__)
 
 
 async def photo_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle incoming photos: download, process, and confirm receipt."""
+    """Handle incoming photos: download, process, call StudyService, and reply with summary."""
     if not update.effective_message:
         return
 
@@ -25,8 +32,8 @@ async def photo_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     )
 
     try:
+        # 1. Identify and download image file
         if update.effective_message.photo:
-            # Telegram provides multiple sizes; the last one is the highest resolution
             photo_obj = update.effective_message.photo[-1]
             tg_file = await context.bot.get_file(photo_obj.file_id)
         elif update.effective_message.document:
@@ -43,30 +50,66 @@ async def photo_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             )
             return
 
-        # Download raw image bytes
         raw_bytes = await tg_file.download_as_bytearray()
 
-        # Resize (max side ~1280px) and compress as JPEG ~80 quality
-        _, width, height, size_kb = process_image(
+        # 2. Resize and compress image
+        compressed_bytes, width, height, size_kb = process_image(
             bytes(raw_bytes), max_side=settings.MAX_IMAGE_SIDE
         )
-
         logger.info(
-            "Photo processed for user %s: %dx%d (%.1f KB)",
-            update.effective_user.id if update.effective_user else "unknown",
+            "Photo preprocessed: %dx%d (%.1f KB). Calling StudyService...",
             width,
             height,
             size_kb,
         )
 
-        # In F2, confirm receipt with dimensions and size (AI comes in F3)
-        confirmation = t(
-            "photo_received", lang, width=width, height=height, size_kb=size_kb
+        # 3. Analyze note via StudyService
+        study_service: StudyService = (
+            context.bot_data.get("study_service") or StudyService()
         )
-        await status_msg.edit_text(confirmation, parse_mode=ParseMode.HTML)
+        result = await study_service.analyze_note(
+            compressed_bytes, language=lang
+        )
 
+        # Save result in user context for quiz flow (F4)
+        if context.user_data is not None:
+            context.user_data["last_study_result"] = result
+
+        # 4. Format and reply with summary, key points, and difficult terms
+        formatted_text = format_study_summary(result, lang=lang)
+        chunks = split_message(formatted_text)
+
+        # Edit status message with first chunk
+        await status_msg.edit_text(chunks[0], parse_mode=ParseMode.HTML)
+
+        # If summary was very long, send any remaining chunks as replies
+        for chunk in chunks[1:]:
+            await update.effective_message.reply_text(
+                chunk, parse_mode=ParseMode.HTML
+            )
+
+    except UnreadableNoteError:
+        logger.info("Handling unreadable note error for user")
+        await status_msg.edit_text(
+            t("unreadable_error", lang), parse_mode=ParseMode.HTML
+        )
+    except GemmaTimeout:
+        logger.warning("Handling timeout error for user")
+        await status_msg.edit_text(
+            t("timeout_error", lang), parse_mode=ParseMode.HTML
+        )
+    except InvalidJSONError:
+        logger.error("Handling invalid JSON error for user")
+        await status_msg.edit_text(
+            t("invalid_json_error", lang), parse_mode=ParseMode.HTML
+        )
+    except (GemmaAuthError, GemmaAPIError) as err:
+        logger.error("Gemma API failure during photo handling: %s", err)
+        await status_msg.edit_text(
+            t("api_error", lang), parse_mode=ParseMode.HTML
+        )
     except Exception as err:
-        logger.error("Error processing photo: %s", err, exc_info=True)
+        logger.error("Unexpected error in photo_handler: %s", err, exc_info=True)
         await status_msg.edit_text(
             t("error_generic", lang), parse_mode=ParseMode.HTML
         )
