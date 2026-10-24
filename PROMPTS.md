@@ -1,5 +1,7 @@
 # PROMPTS.md — copy and paste these to your coding agent
 
+> Note: For the study portal track (P0–P7), prompts are in `PROMPTS_PORTAL.md`.
+
 Put `AGENT.md` and this file in the root of an empty project folder first, then open the folder in
 your agent (Claude Code, Cursor, Copilot, etc.). `AGENT.md` is the source of truth. If this file and
 `AGENT.md` ever disagree, `AGENT.md` wins.

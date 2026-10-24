@@ -64,7 +64,7 @@ photo in → Gemma reads it → summary → quiz → score, in under one minute.
 ## 2. Hackathon rules the code must respect
 
 - Core model is **open-source Gemma 4**. No closed-model APIs. The README must name the model and the provider.
-- The interface is a **Telegram bot**. No web UI, no React, no dashboard.
+- The main interface is a **Telegram bot**. A read-only study portal (see `AGENT_PORTAL.md`) is allowed as a second window onto the same data.
 - **No secrets in the repo.** `.env` is gitignored. Provide `.env.example`.
 - **No model weights in the repo.**
 - **No fake demos.** Never hardcode answers and present them as model output.
@@ -94,7 +94,7 @@ photo in → Gemma reads it → summary → quiz → score, in under one minute.
 | Tests | `pytest`, `pytest-asyncio` | Small, only for pure logic |
 
 **Do NOT add:** FastAPI, SQLAlchemy, structlog, Docker, Redis, Celery, OAuth, any web
-frontend, any CI/CD, any analytics. They cost hackathon time and add no demo value.
+frontend, any CI/CD, any analytics (…except what `AGENT_PORTAL.md` adds: FastAPI, uvicorn, itsdangerous, and a React/Vite app in `web/`). They cost hackathon time and add no demo value.
 
 ---
 
@@ -151,6 +151,8 @@ snapstudy/
     ├── test_intent.py
     └── test_guards.py
 ```
+
+> Note: For the web portal folder structure, see `AGENT_PORTAL.md` Section 4.2.
 
 ### 4.2 Layer rules (the only "clean architecture" we need)
 
@@ -476,6 +478,8 @@ CREATE TABLE IF NOT EXISTS quiz_attempts (
 - `file_id` and `file_unique_id` are Telegram identifiers, not photos. They let a note be re-fetched
   for the language toggle (F6) and let groups skip the download on repeats (G3).
 
+> Note: For portal database additions (sessions, question_attempts), see `AGENT_PORTAL.md` Section 5.
+
 ---
 
 ## 8. Telegram UX rules
@@ -497,6 +501,9 @@ CREATE TABLE IF NOT EXISTS quiz_attempts (
 ## 9. Feature list (build in this order, one at a time)
 
 **Order:** F0 → F7, then G1 → G3 (group mode), then stretch (G4, F8, F9). F10 is always last.
+Portal features P0–P7 live in `AGENT_PORTAL.md`. The human decides the track after F7 (see its section 3).
+Combined drop order: `P7, P6, F8, P4, P3, P2, P5, P1`. Never drop F0 → F7 and F10.
+Group mode (G1–G4) is **not being built right now**. Skip those features unless the human asks for them later.
 
 **All features stay in scope.** If time runs short, drop work from the bottom of this list, in this
 order: G4, F9, F8, G3, then G2 and G1. F0 → F7 plus F10 is always the minimum to submit. Right after
@@ -637,7 +644,7 @@ its acceptance criteria hold and you have told the human exactly how to test it.
 - **Human test:** press the buttons and see sensible output.
 
 ### F9 — Stretch: weak topics (only if time remains)
-- Track wrong answers by note topic and offer a `🎯 Practice weak topics` quiz. Add a `weak_topics` table at that point and not before.
+- Track wrong answers by note topic and offer a `🎯 Practice weak topics` quiz. Add a `weak_topics` table at that point and not before. Replaced by P5 in `AGENT_PORTAL.md` when that file is in use. In that case do **not** create a `weak_topics` table.
 
 ### F10 — README, screenshots and submission prep
 - Write `README.md` using the hackathon template:
@@ -692,7 +699,7 @@ warnings. **Never log API keys, the bot token or full image data.**
   Pillow and `sqlite3` run through `asyncio.to_thread`.
 - Small functions that do one thing. Descriptive names. Short docstrings.
 - No dead code, no commented-out blocks, no TODOs without a reason.
-- Pure logic (JSON extraction, scoring, message splitting) gets simple pytest tests. Do not test Telegram or the network.
+- Pure logic (JSON extraction, scoring, message splitting) gets simple pytest tests. DB tests that use a temporary SQLite file for portal queries and auth are also allowed. Do not test Telegram or the network.
 - Prefer the simplest solution that meets the acceptance criteria.
 - Do not add dependencies without saying why. Pin versions in `requirements.txt`.
 

@@ -133,6 +133,7 @@ async def photo_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             logger.info("Cache hit for note image hash %s", img_hash)
             result = StudyResult.model_validate_json(cached["quiz_json"])
             formatted_text = cached["summary_text"]
+            note_title = cached.get("title") or (result.title if result else None)
             note_id = await db.save_note(
                 telegram_id=user.id,
                 language=lang,
@@ -141,6 +142,7 @@ async def photo_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
                 quiz_json=cached["quiz_json"],
                 file_id=file_id,
                 file_unique_id=file_unique_id,
+                title=note_title,
             )
         else:
             logger.info("Cache miss for image hash %s. Calling Gemma...", img_hash)
@@ -161,6 +163,7 @@ async def photo_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
                 quiz_json=quiz_json_str,
                 file_id=file_id,
                 file_unique_id=file_unique_id,
+                title=result.title,
             )
 
         # Save session context for quiz flow and regeneration

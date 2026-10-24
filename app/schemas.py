@@ -12,7 +12,7 @@ class DifficultTerm(BaseModel):
 
 
 class MCQ(BaseModel):
-    """Multiple choice question with exactly 4 options and 1 correct answer."""
+    """Multiple choice question with exactly 4 options, 1 correct answer, and topic."""
 
     question: str = Field(description="The question prompt")
     options: List[str] = Field(
@@ -24,6 +24,10 @@ class MCQ(BaseModel):
     explanation: str = Field(
         description="Brief explanation of why the correct option is right"
     )
+    topic: Optional[str] = Field(
+        default="General",
+        description="Subtopic name (at most 3 words, e.g. 'Inertia', 'Momentum')",
+    )
 
     @field_validator("options")
     @classmethod
@@ -32,10 +36,22 @@ class MCQ(BaseModel):
             raise ValueError(f"MCQ must have exactly 4 options, got {len(v)}")
         return v
 
+    @field_validator("topic", mode="before")
+    @classmethod
+    def truncate_topic(cls, v: Optional[str]) -> str:
+        if not v:
+            return "General"
+        val = str(v).strip()
+        return val[:30] if len(val) > 30 else val
+
 
 class StudyResult(BaseModel):
     """Complete structured output from Gemma note analysis."""
 
+    title: Optional[str] = Field(
+        default=None,
+        description="Short, descriptive title for the note (at most 6 words)",
+    )
     summary: str = Field(
         description="Concise summary of note concepts, under 120 words"
     )
@@ -51,6 +67,16 @@ class StudyResult(BaseModel):
     short_questions: List[str] = Field(
         default_factory=list, description="2 to 3 conceptual or discussion questions"
     )
+
+    @field_validator("title", mode="before")
+    @classmethod
+    def truncate_title(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return None
+        val = str(v).strip()
+        if not val:
+            return None
+        return val[:60] if len(val) > 60 else val
 
     @field_validator("mcqs")
     @classmethod

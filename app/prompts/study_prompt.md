@@ -11,6 +11,7 @@ INSTRUCTIONS:
 
 3. If readable, produce valid JSON matching this schema:
 {
+  "title": "Short title for the note (at most 6 words)",
   "summary": "Clear, concise summary of the material in under 120 words.",
   "key_points": [
     "First main point or formula",
@@ -28,31 +29,36 @@ INSTRUCTIONS:
       "question": "Question 1 testing comprehension of the note content",
       "options": ["Option A text", "Option B text", "Option C text", "Option D text"],
       "correct_index": 0,
-      "explanation": "Why this option is correct based on the note"
+      "explanation": "Why this option is correct based on the note",
+      "topic": "Subtopic (at most 3 words, e.g. Momentum)"
     },
     {
       "question": "Question 2",
       "options": ["Option A", "Option B", "Option C", "Option D"],
       "correct_index": 1,
-      "explanation": "Why this option is correct"
+      "explanation": "Why this option is correct",
+      "topic": "Subtopic"
     },
     {
       "question": "Question 3",
       "options": ["Option A", "Option B", "Option C", "Option D"],
       "correct_index": 2,
-      "explanation": "Why this option is correct"
+      "explanation": "Why this option is correct",
+      "topic": "Subtopic"
     },
     {
       "question": "Question 4",
       "options": ["Option A", "Option B", "Option C", "Option D"],
       "correct_index": 3,
-      "explanation": "Why this option is correct"
+      "explanation": "Why this option is correct",
+      "topic": "Subtopic"
     },
     {
       "question": "Question 5",
       "options": ["Option A", "Option B", "Option C", "Option D"],
       "correct_index": 0,
-      "explanation": "Why this option is correct"
+      "explanation": "Why this option is correct",
+      "topic": "Subtopic"
     }
   ],
   "short_questions": [
@@ -62,6 +68,8 @@ INSTRUCTIONS:
 }
 
 STRICT JSON RULES:
+- "title" must be a concise title of at most 6 words.
+- Each question in "mcqs" must include a "topic" of at most 3 words (e.g. "Inertia", "Momentum"), reused consistently across questions of the same concept.
 - The "mcqs" array MUST contain EXACTLY 5 questions.
 - Each question in "mcqs" MUST contain EXACTLY 4 options in "options".
 - "correct_index" must be an integer between 0 and 3.

@@ -46,6 +46,18 @@ def _row_to_dict(row: sqlite3.Row) -> Dict[str, Any]:
     return {k: row[k] for k in row.keys()}
 
 
+def ensure_column(conn: sqlite3.Connection, table: str, column: str, ddl: str) -> None:
+    """Add column to table if it doesn't already exist."""
+    pragma_rows = conn.execute(f"PRAGMA table_info({table});").fetchall()
+    existing_cols = {
+        row["name"] if isinstance(row, sqlite3.Row) else row[1]
+        for row in pragma_rows
+    }
+    if column not in existing_cols:
+        conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {ddl};")
+        logger.info("Added column '%s' to table '%s'", column, table)
+
+
 def init_db(db_path: Optional[str] = None) -> None:
     """Initialize SQLite database with WAL mode and create tables if missing."""
     if db_path:
@@ -82,6 +94,8 @@ def init_db(db_path: Optional[str] = None) -> None:
         conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_notes_hash ON notes(image_hash);"
         )
+        ensure_column(conn, "notes", "title", "TEXT")
+
         conn.execute(
             """
             CREATE TABLE IF NOT EXISTS quiz_attempts (
@@ -91,6 +105,38 @@ def init_db(db_path: Optional[str] = None) -> None:
                 score       INTEGER NOT NULL,
                 total       INTEGER NOT NULL,
                 created_at  TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+            """
+        )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS question_attempts (
+                id            INTEGER PRIMARY KEY AUTOINCREMENT,
+                telegram_id   INTEGER NOT NULL,
+                note_id       INTEGER NOT NULL,
+                q_index       INTEGER NOT NULL,
+                topic         TEXT NOT NULL DEFAULT 'General',
+                chosen_index  INTEGER NOT NULL,
+                correct_index INTEGER NOT NULL,
+                is_correct    INTEGER NOT NULL,
+                source        TEXT NOT NULL DEFAULT 'quiz',
+                created_at    TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+            """
+        )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_qa_user ON question_attempts(telegram_id, created_at);"
+        )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_qa_question ON question_attempts(telegram_id, note_id, q_index);"
+        )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS portal_tokens (
+                token_hash  TEXT PRIMARY KEY,
+                telegram_id INTEGER NOT NULL,
+                expires_at  TEXT NOT NULL,
+                used_at     TEXT
             );
             """
         )
@@ -155,7 +201,7 @@ def _get_cached_note(image_hash: str) -> Optional[Dict[str, Any]]:
     with _get_connection() as conn:
         row = conn.execute(
             """
-            SELECT id, summary_text, quiz_json, file_id, file_unique_id
+            SELECT id, title, summary_text, quiz_json, file_id, file_unique_id
             FROM notes
             WHERE image_hash = ?
             ORDER BY id DESC
@@ -177,7 +223,7 @@ def _get_note_by_id(note_id: int) -> Optional[Dict[str, Any]]:
     with _get_connection() as conn:
         row = conn.execute(
             """
-            SELECT id, telegram_id, language, style, image_hash, file_id, file_unique_id, summary_text, quiz_json
+            SELECT id, telegram_id, title, language, style, image_hash, file_id, file_unique_id, summary_text, quiz_json
             FROM notes
             WHERE id = ?;
             """,
@@ -202,12 +248,13 @@ def _save_note(
     file_id: Optional[str] = None,
     file_unique_id: Optional[str] = None,
     style: str = "full",
+    title: Optional[str] = None,
 ) -> int:
     with _get_connection() as conn:
         cursor = conn.execute(
             """
-            INSERT INTO notes (telegram_id, language, style, image_hash, file_id, file_unique_id, summary_text, quiz_json)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+            INSERT INTO notes (telegram_id, language, style, image_hash, file_id, file_unique_id, summary_text, quiz_json, title)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
             """,
             (
                 telegram_id,
@@ -218,6 +265,7 @@ def _save_note(
                 file_unique_id,
                 summary_text,
                 quiz_json,
+                title,
             ),
         )
         return cursor.lastrowid
@@ -232,6 +280,7 @@ async def save_note(
     file_id: Optional[str] = None,
     file_unique_id: Optional[str] = None,
     style: str = "full",
+    title: Optional[str] = None,
 ) -> int:
     """Insert a note record and return its primary key id."""
     return await asyncio.to_thread(
@@ -244,6 +293,7 @@ async def save_note(
         file_id,
         file_unique_id,
         style,
+        title,
     )
 
 

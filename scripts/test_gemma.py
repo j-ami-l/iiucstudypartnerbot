@@ -121,10 +121,13 @@ async def run_smoke_test(image_path: str, language: str) -> int:
         print(json.dumps(validated.model_dump(), indent=2, ensure_ascii=False))
         print("\n" + "=" * 60)
         print("✅ VALIDATION SUCCESS:")
+        print(f"- Title: {validated.title or '(None)'}")
         print(f"- Summary length: {len(validated.summary.split())} words")
         print(f"- Key points: {len(validated.key_points)}")
         print(f"- Difficult terms: {len(validated.difficult_terms)}")
         print(f"- MCQs: {len(validated.mcqs)} (All have 4 options and valid correct_index)")
+        topics_preview = [m.topic for m in validated.mcqs]
+        print(f"- Topics: {topics_preview}")
         print(f"- Short questions: {len(validated.short_questions)}")
         print(f"\n⏱️ Latency: {latency:.2f}s")
         return 0

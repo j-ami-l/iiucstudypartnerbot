@@ -6,7 +6,7 @@ from telegram.constants import ParseMode
 from telegram.error import BadRequest, RetryAfter
 from telegram.ext import ContextTypes
 
-from app import db
+from app import db, db_stats
 from app.i18n import t
 from app.keyboards import (
     mcq_keyboard,
@@ -108,6 +108,9 @@ async def quiz_callback_handler(
             await query.answer()
             return
 
+        if note_id is None and context.user_data:
+            note_id = context.user_data.get("last_note_id")
+
         quiz_state = (
             context.user_data.get("quiz_state") if context.user_data else None
         )
@@ -128,6 +131,23 @@ async def quiz_callback_handler(
             quiz_state, option_index
         )
         await query.answer("✅" if is_correct else "❌")
+
+        # In private chat, write one question_attempts row per answered question
+        if update.effective_chat and update.effective_chat.type == "private":
+            try:
+                topic = getattr(current_mcq, "topic", "General") or "General"
+                await db_stats.record_answer(
+                    telegram_id=user.id,
+                    note_id=note_id if note_id is not None else 0,
+                    q_index=quiz_state.current_index,
+                    topic=topic,
+                    chosen_index=option_index,
+                    correct_index=current_mcq.correct_index,
+                    is_correct=1 if is_correct else 0,
+                    source="quiz",
+                )
+            except Exception as err:
+                logger.error("Failed to record question attempt: %s", err)
 
         is_last = quiz_state.current_index == quiz_state.total_questions - 1
         feedback_text = quiz_service.format_answer_feedback(
