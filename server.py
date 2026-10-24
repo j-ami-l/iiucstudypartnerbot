@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -66,6 +67,15 @@ async def lifespan(app: FastAPI):
 def create_app() -> FastAPI:
     """Create unified FastAPI app."""
     app = FastAPI(title="SnapStudy AI", lifespan=lifespan, docs_url=None, redoc_url=None)
+
+    # CORS support for Vercel frontends and local dev
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origin_regex=r"https://.*\.vercel\.app|http://localhost:\d+",
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
     # Global unhandled exception handler
     @app.exception_handler(Exception)

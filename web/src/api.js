@@ -12,6 +12,8 @@ export class ApiError extends Error {
   }
 }
 
+const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
+
 async function request(url, options = {}) {
   const defaultHeaders = {
     Accept: 'application/json',
@@ -20,7 +22,9 @@ async function request(url, options = {}) {
     defaultHeaders['Content-Type'] = 'application/json';
   }
 
-  const response = await fetch(url, {
+  const endpoint = url.startsWith('http') ? url : `${API_BASE}${url}`;
+
+  const response = await fetch(endpoint, {
     credentials: 'include',
     ...options,
     headers: {
