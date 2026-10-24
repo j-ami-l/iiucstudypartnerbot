@@ -1,6 +1,13 @@
 import React, { useState } from 'react';
 import Card from './Card';
+import Badge from './Badge';
+import ProgressBar from './ProgressBar';
+import Icon from './Icon';
 
+/**
+ * Interactive 3D Flip Flashcards Mode (Active Recall).
+ * Beautiful Red Noir styling with smooth 3D flip animation.
+ */
 export default function Flashcards({ mcqs = [], title = 'Study Note' }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
@@ -10,8 +17,8 @@ export default function Flashcards({ mcqs = [], title = 'Study Note' }) {
 
   if (!mcqs || mcqs.length === 0) {
     return (
-      <Card style={{ textAlign: 'center', padding: '2.5rem 1rem' }}>
-        <p style={{ color: 'var(--text-secondary)' }}>
+      <Card style={{ textAlign: 'center', padding: '40px 20px' }}>
+        <p style={{ color: 'var(--text-2)', fontSize: '14px' }}>
           No quiz questions available to generate flashcards from this note.
         </p>
       </Card>
@@ -35,7 +42,7 @@ export default function Flashcards({ mcqs = [], title = 'Study Note' }) {
     }
 
     if (currentIndex + 1 < total) {
-      setTimeout(() => setCurrentIndex((idx) => idx + 1), 150);
+      setTimeout(() => setCurrentIndex((idx) => idx + 1), 180);
     } else {
       setIsFinished(true);
     }
@@ -51,31 +58,48 @@ export default function Flashcards({ mcqs = [], title = 'Study Note' }) {
 
   if (isFinished) {
     return (
-      <Card style={{ textAlign: 'center', padding: '3rem 1.5rem' }}>
-        <div style={{ fontSize: '3rem', marginBottom: '0.75rem' }}>🎯</div>
-        <h2 style={{ fontSize: '1.35rem', fontWeight: 800, marginBottom: '0.5rem' }}>
+      <Card style={{ textAlign: 'center', padding: '48px 24px' }}>
+        <div style={{ fontSize: '40px', marginBottom: '12px' }}>🎯</div>
+        <h2 className="portal-page-title" style={{ fontSize: '24px', marginBottom: '8px' }}>
           Active Recall Session Complete!
         </h2>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '0.92rem', marginBottom: '1.5rem' }}>
+        <p style={{ color: 'var(--text-2)', fontSize: '14px', marginBottom: '24px' }}>
           You reviewed all {total} flashcards for {title}.
         </p>
 
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem', marginBottom: '2rem' }}>
-          <div style={{ background: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '0.85rem 1.5rem', borderRadius: 'var(--radius-md)' }}>
-            <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--accent-green)' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginBottom: '28px' }}>
+          <div
+            style={{
+              background: 'rgba(52, 211, 153, 0.12)',
+              border: '1px solid rgba(52, 211, 153, 0.3)',
+              padding: '16px 28px',
+              borderRadius: 'var(--radius-card)',
+              textAlign: 'center',
+            }}
+          >
+            <div style={{ fontSize: '28px', fontWeight: 800, color: 'var(--ok)', fontFamily: 'var(--font-head)' }}>
               {mastered.size}
             </div>
-            <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Mastered</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-2)', marginTop: '4px' }}>Mastered</div>
           </div>
-          <div style={{ background: 'rgba(244, 63, 94, 0.12)', border: '1px solid rgba(244, 63, 94, 0.3)', padding: '0.85rem 1.5rem', borderRadius: 'var(--radius-md)' }}>
-            <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--accent-rose)' }}>
+
+          <div
+            style={{
+              background: 'var(--accent-soft)',
+              border: '1px solid rgba(239, 35, 60, 0.3)',
+              padding: '16px 28px',
+              borderRadius: 'var(--radius-card)',
+              textAlign: 'center',
+            }}
+          >
+            <div style={{ fontSize: '28px', fontWeight: 800, color: 'var(--accent-light)', fontFamily: 'var(--font-head)' }}>
               {reviewLater.size}
             </div>
-            <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Review Later</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-2)', marginTop: '4px' }}>Review Later</div>
           </div>
         </div>
 
-        <button onClick={handleRestart} className="btn btn-primary">
+        <button onClick={handleRestart} className="portal-btn-primary" type="button">
           🔄 Practice Again
         </button>
       </Card>
@@ -88,62 +112,56 @@ export default function Flashcards({ mcqs = [], title = 'Study Note' }) {
       : 'Correct answer not specified';
 
   return (
-    <div>
+    <div className="flashcards-container">
       {/* Session Progress Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.85rem' }}>
-        <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+        <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-2)' }}>
           Card {currentIndex + 1} of {total}
         </span>
-        <div style={{ display: 'flex', gap: '0.6rem' }}>
-          <span className="badge badge-green" style={{ fontSize: '0.75rem' }}>
-            ✓ {mastered.size} Mastered
-          </span>
-          <span className="badge badge-rose" style={{ fontSize: '0.75rem' }}>
-            ✗ {reviewLater.size} Needs Review
-          </span>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <Badge variant="ok">✓ {mastered.size} Mastered</Badge>
+          <Badge variant="accent">✗ {reviewLater.size} Needs Review</Badge>
         </div>
       </div>
 
       {/* Progress Bar */}
-      <div
-        style={{
-          width: '100%',
-          height: '4px',
-          background: 'rgba(255, 255, 255, 0.08)',
-          borderRadius: '2px',
-          marginBottom: '1rem',
-          overflow: 'hidden',
-        }}
-      >
-        <div
-          style={{
-            width: `${((currentIndex + 1) / total) * 100}%`,
-            height: '100%',
-            background: 'var(--accent-primary)',
-            transition: 'width 0.3s ease',
-          }}
+      <div className="flashcard-progress-bar">
+        <ProgressBar
+          value={currentIndex + 1}
+          max={total}
+          color="var(--accent)"
         />
       </div>
 
       {/* 3D Flip Card */}
-      <div className="flashcard-wrapper" onClick={() => setIsFlipped(!isFlipped)}>
+      <div
+        className="flashcard-wrapper"
+        onClick={() => setIsFlipped(!isFlipped)}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === ' ' || e.key === 'Enter') {
+            e.preventDefault();
+            setIsFlipped(!isFlipped);
+          }
+        }}
+        aria-label="Flashcard. Click or press Space to flip."
+      >
         <div className={`flashcard-inner ${isFlipped ? 'flipped' : ''}`}>
           {/* Front Face */}
           <div className="flashcard-face flashcard-front">
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                <span className="badge badge-blue">QUESTION #{currentIndex + 1}</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <Badge variant="neutral">QUESTION #{currentIndex + 1}</Badge>
                 {currentCard.topic && (
-                  <span className="badge badge-purple" style={{ background: 'rgba(139, 92, 246, 0.15)', color: '#c4b5fd' }}>
-                    {currentCard.topic}
-                  </span>
+                  <Badge variant="accent">{currentCard.topic}</Badge>
                 )}
               </div>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, lineHeight: 1.5, color: 'var(--text-primary)' }}>
+              <h3 className="flashcard-question">
                 {currentCard.question}
               </h3>
             </div>
-            <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', textAlign: 'center' }}>
+            <div className="flashcard-flip-hint">
               💡 Click or tap card to reveal answer
             </div>
           </div>
@@ -151,19 +169,22 @@ export default function Flashcards({ mcqs = [], title = 'Study Note' }) {
           {/* Back Face */}
           <div className="flashcard-face flashcard-back">
             <div>
-              <div style={{ marginBottom: '0.75rem' }}>
-                <span className="badge badge-green">CORRECT ANSWER</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                <Badge variant="ok">CORRECT ANSWER</Badge>
+                {currentCard.topic && (
+                  <Badge variant="neutral">{currentCard.topic}</Badge>
+                )}
               </div>
-              <h4 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#34d399', marginBottom: '0.85rem', lineHeight: 1.4 }}>
+              <h4 className="flashcard-answer-text">
                 {correctOption}
               </h4>
               {currentCard.explanation && (
-                <p style={{ fontSize: '0.88rem', color: '#cbd5e1', lineHeight: 1.6, background: 'rgba(255, 255, 255, 0.03)', padding: '0.75rem', borderRadius: 'var(--radius-sm)' }}>
-                  <strong>Explanation:</strong> {currentCard.explanation}
-                </p>
+                <div className="flashcard-explanation-box">
+                  <strong style={{ color: 'var(--text)' }}>Explanation:</strong> {currentCard.explanation}
+                </div>
               )}
             </div>
-            <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', textAlign: 'center' }}>
+            <div className="flashcard-flip-hint">
               💡 Click or tap card to flip back
             </div>
           </div>
@@ -171,14 +192,14 @@ export default function Flashcards({ mcqs = [], title = 'Study Note' }) {
       </div>
 
       {/* Active Recall Response Controls */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: '0.75rem', alignItems: 'center' }}>
+      <div className="flashcard-controls">
         <button
           onClick={(e) => {
             e.stopPropagation();
             handleNext(false);
           }}
-          className="btn btn-secondary"
-          style={{ borderColor: 'rgba(244, 63, 94, 0.3)', color: '#fb7185' }}
+          className="portal-btn-secondary flashcard-btn-review"
+          type="button"
         >
           ❌ Still Learning
         </button>
@@ -188,11 +209,12 @@ export default function Flashcards({ mcqs = [], title = 'Study Note' }) {
             e.stopPropagation();
             setIsFlipped(!isFlipped);
           }}
-          className="btn btn-secondary"
-          style={{ minWidth: '44px' }}
-          title="Flip Card"
+          className="portal-btn-secondary flashcard-btn-flip"
+          title="Flip Card (or tap anywhere on the card)"
+          type="button"
         >
-          🔄 Flip
+          <Icon name="bolt" size={14} />
+          <span>Flip</span>
         </button>
 
         <button
@@ -200,8 +222,8 @@ export default function Flashcards({ mcqs = [], title = 'Study Note' }) {
             e.stopPropagation();
             handleNext(true);
           }}
-          className="btn btn-primary"
-          style={{ background: 'var(--accent-green)' }}
+          className="portal-btn-primary flashcard-btn-mastered"
+          type="button"
         >
           ✅ Mastered!
         </button>

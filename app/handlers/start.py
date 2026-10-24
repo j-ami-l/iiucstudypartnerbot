@@ -40,29 +40,39 @@ async def start_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             note_id = int(raw_id)
             note = await db.get_note_by_id(note_id)
             if note and note.get("quiz_json"):
+                from app.keyboards import mcq_keyboard
+                from app.schemas import StudyResult
                 from app.services.quiz_service import QuizService
 
-                quiz_service: QuizService = (
-                    context.bot_data.get("quiz_service") or QuizService()
-                )
-                title = note.get("title") or f"Note #{note_id}"
-                await update.effective_message.reply_text(
-                    f"⚔️ <b>Classmate Challenge Accepted!</b>\n"
-                    f"You've been challenged on: <b>{title}</b>.\n"
-                    f"Let's see how high you can score! Starting quiz:",
-                    parse_mode=ParseMode.HTML,
-                )
-                await quiz_service.send_question(
-                    update=update,
-                    context=context,
-                    note_id=note_id,
-                    q_index=0,
-                    quiz_json=note["quiz_json"],
-                    lang=lang,
-                )
-                return
+                study_result = StudyResult.model_validate_json(note["quiz_json"])
+                if study_result and study_result.mcqs:
+                    quiz_service: QuizService = (
+                        context.bot_data.get("quiz_service") or QuizService()
+                    )
+                    quiz_state = quiz_service.create_quiz(study_result)
+                    if context.user_data is not None:
+                        context.user_data["quiz_state"] = quiz_state
+                        context.user_data["last_note_id"] = note_id
+                        context.user_data["last_study_result"] = study_result
+
+                    title = note.get("title") or f"Note #{note_id}"
+                    await update.effective_message.reply_text(
+                        f"⚔️ <b>Classmate Challenge Accepted!</b>\n"
+                        f"You've been challenged on: <b>{title}</b>.\n"
+                        f"Let's see how high you can score! Starting quiz:",
+                        parse_mode=ParseMode.HTML,
+                    )
+
+                    cur_num, mcq, total = quiz_service.get_current_question(quiz_state)
+                    q_text = quiz_service.format_question_message(mcq, cur_num, total, lang)
+                    await update.effective_message.reply_text(
+                        q_text,
+                        parse_mode=ParseMode.HTML,
+                        reply_markup=mcq_keyboard(quiz_state.current_index, note_id=note_id),
+                    )
+                    return
         except Exception as e:
-            logger.warning("Error handling challenge deep link: %s", e)
+            logger.warning("Error handling challenge deep link: %s", e, exc_info=True)
 
     text = t("welcome", lang)
     await update.effective_message.reply_text(text, parse_mode=ParseMode.HTML)

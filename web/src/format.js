@@ -33,12 +33,21 @@ export function fullDate(value, locale = navigator.language) {
 
 export function noteTitle(note) {
   if (!note) return "Untitled note";
-  if (note.title && note.title.trim()) return note.title.trim();
+  if (note.title && note.title.trim()) {
+    const raw = note.title.trim();
+    const stripped = raw.replace(/<[^>]+>/g, "").trim();
+    if (stripped && !/^(summary|study summary|সারসংক্ষেপ)$/i.test(stripped)) {
+      return stripped;
+    }
+  }
   if (note.summary_text) {
     const lines = note.summary_text.split("\n").map((l) => l.trim()).filter(Boolean);
     for (const line of lines) {
-      const cleaned = line.replace(/^[\p{Emoji}\s#*-]+(Summary|সারসংক্ষেপ)?[:\s-]*/iu, "").trim();
-      if (cleaned) {
+      const noHtml = line.replace(/<[^>]+>/g, "").trim();
+      const cleaned = noHtml
+        .replace(/^[\p{Emoji}\s#*-]+(Summary|সারসংক্ষেপ|Study Summary)?[:\s-]*/iu, "")
+        .trim();
+      if (cleaned && !/^(summary|study summary|সারসংক্ষেপ)$/i.test(cleaned)) {
         return cleaned.length > 60 ? cleaned.slice(0, 57) + "…" : cleaned;
       }
     }
