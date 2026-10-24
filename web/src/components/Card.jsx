@@ -1,12 +1,20 @@
 import React from 'react';
 
-export default function Card({ children, className = '', onClick, clickable = false }) {
-  const classes = ['card', clickable ? 'card-clickable' : '', className]
+/**
+ * Bento-style Card surface with noir border and gradient background.
+ * UI_PORTAL.md Section 1 & 4.
+ */
+export default function Card({ children, className = '', onClick, clickable = false, id }) {
+  const classes = [
+    'portal-card',
+    clickable ? 'card-clickable' : '',
+    className,
+  ]
     .filter(Boolean)
     .join(' ');
 
   return (
-    <div className={classes} onClick={onClick}>
+    <div id={id} className={classes} onClick={onClick}>
       {children}
     </div>
   );

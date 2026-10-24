@@ -252,3 +252,25 @@ class TestPortalApiIsolation(unittest.TestCase):
         self.assertEqual(resp_api_404.status_code, 404)
         self.assertEqual(resp_api_404.json(), {"detail": "not_found"})
 
+    def test_leaderboard_route(self):
+        """Verify /api/leaderboard returns ranked students with is_me flag."""
+        resp = self.client.get("/api/leaderboard", cookies=self.cookie_a)
+        self.assertEqual(resp.status_code, 200)
+        board = resp.json()
+        self.assertGreaterEqual(len(board), 1)
+        # Verify Alice is marked is_me = True
+        alice_entry = next((item for item in board if item["name"] == "Alice"), None)
+        self.assertIsNotNone(alice_entry)
+        self.assertTrue(alice_entry["is_me"])
+
+    def test_ask_ai_tutor_isolation_and_404(self):
+        """User A cannot ask AI tutor questions about User B's note (404)."""
+        resp = self.client.post(
+            f"/api/notes/{self.note_b_id}/ask",
+            json={"question": "Explain this?"},
+            cookies=self.cookie_a,
+        )
+        self.assertEqual(resp.status_code, 404)
+        self.assertEqual(resp.json(), {"detail": "note_not_found"})
+
+

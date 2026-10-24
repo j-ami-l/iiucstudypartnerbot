@@ -1,5 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import '@fontsource-variable/manrope';
+import '@fontsource-variable/inter';
+import '@fontsource/noto-sans-bengali';
 import App from './App';
 import './styles.css';
 

@@ -1,11 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../api';
 import Card from '../components/Card';
-import LoadingState from '../components/LoadingState';
+import Badge from '../components/Badge';
 import EmptyState from '../components/EmptyState';
 import ErrorState from '../components/ErrorState';
-import { formatLocalDateTime } from '../utils/date';
+import Skeleton from '../components/Skeleton';
+import { timeAgo, fullDate } from '../format';
 
+/**
+ * Mistake Notebook — UI_PORTAL.md Section 5.6
+ * Question cards with correct options highlighted in --ok.
+ */
 export default function Mistakes({ user }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -34,7 +39,13 @@ export default function Mistakes({ user }) {
   const botPracticeUrl = `https://t.me/${botUsername}?start=practice`;
 
   if (loading) {
-    return <LoadingState message="Opening your mistake notebook..." />;
+    return (
+      <div className="portal-page">
+        <h1 className="portal-page-title">Mistake Notebook</h1>
+        <p className="portal-page-subtitle">Track questions you got wrong and master them.</p>
+        <Skeleton count={3} type="note" />
+      </div>
+    );
   }
 
   if (error) {
@@ -43,12 +54,12 @@ export default function Mistakes({ user }) {
 
   if (mistakes.length === 0) {
     return (
-      <div>
-        <h1 className="title-xl">Mistake Notebook</h1>
-        <p className="subtitle">Track questions you got wrong and master them.</p>
+      <div className="portal-page">
+        <h1 className="portal-page-title">Mistake Notebook</h1>
+        <p className="portal-page-subtitle">Track questions you got wrong and master them.</p>
         <EmptyState
           icon="🎉"
-          title="No Mistakes to Practice!"
+          title="No mistakes to practice!"
           description="You don't have any outstanding mistakes. Questions you answer correctly in practice automatically disappear from here."
           actionText="Take a Quiz in Telegram"
           actionHref={`https://t.me/${botUsername}`}
@@ -58,90 +69,113 @@ export default function Mistakes({ user }) {
   }
 
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
+    <div className="portal-page">
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          flexWrap: 'wrap',
+          gap: '12px',
+          marginBottom: '20px',
+        }}
+      >
         <div>
-          <h1 className="title-xl">Mistake Notebook</h1>
-          <p className="subtitle">
-            {mistakes.length} active {mistakes.length === 1 ? 'mistake' : 'mistakes'} recorded.
+          <h1 className="portal-page-title">Mistake Notebook</h1>
+          <p className="portal-page-subtitle">
+            {mistakes.length} active {mistakes.length === 1 ? 'question' : 'questions'} recorded.
           </p>
         </div>
         <a
           href={botPracticeUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="btn btn-primary"
+          className="portal-btn-primary"
         >
-          🎯 Practice All Mistakes
+          🎯 Practice in Telegram
         </a>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
         {mistakes.map((m, idx) => {
-          const attemptDate = formatLocalDateTime(m.last_attempt_at);
+          const relativeTime = timeAgo(m.last_attempt_at);
+          const exactDate = fullDate(m.last_attempt_at);
 
           return (
             <Card key={`${m.note_id}_${m.q_index}_${idx}`}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem', marginBottom: '0.6rem' }}>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                  From: {m.note_title || `Note #${m.note_id}`} • {attemptDate}
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  gap: '8px',
+                  marginBottom: '10px',
+                }}
+              >
+                <span
+                  title={exactDate}
+                  style={{ fontSize: '12px', color: 'var(--text-3)' }}
+                >
+                  From: {m.note_title || `Note #${m.note_id}`} • {relativeTime}
                 </span>
-                {m.topic && (
-                  <span className="badge badge-purple" style={{ background: 'rgba(139, 92, 246, 0.15)', color: '#c4b5fd' }}>
-                    {m.topic}
-                  </span>
-                )}
+                {m.topic && <Badge variant="accent">{m.topic}</Badge>}
               </div>
 
-              <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '0.8rem', color: 'var(--text-primary)' }}>
+              <h3
+                style={{
+                  fontSize: '15px',
+                  fontWeight: 600,
+                  marginBottom: '12px',
+                  color: 'var(--text)',
+                }}
+              >
                 {idx + 1}. {m.question}
               </h3>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginBottom: '0.8rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '10px' }}>
                 {m.options?.map((opt, optIdx) => {
                   const isCorrect = optIdx === m.correct_index;
-                  const isChosen = optIdx === m.chosen_index;
-
-                  let styleClass = '';
-                  let tag = null;
-
-                  if (isCorrect) {
-                    styleClass = 'correct';
-                    tag = (
-                      <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#34d399' }}>
-                        ✓ Correct Answer
-                      </span>
-                    );
-                  } else if (isChosen) {
-                    tag = (
-                      <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#fb7185' }}>
-                        ✗ Your Answer
-                      </span>
-                    );
-                  }
-
                   return (
                     <div
                       key={optIdx}
-                      className={`mcq-option ${styleClass}`}
                       style={{
-                        background: isChosen && !isCorrect ? 'rgba(244, 63, 94, 0.12)' : undefined,
-                        border: isChosen && !isCorrect ? '1px solid rgba(244, 63, 94, 0.3)' : undefined,
+                        padding: '8px 12px',
+                        borderRadius: '8px',
+                        background: isCorrect ? 'rgba(52, 211, 153, 0.12)' : 'rgba(255, 255, 255, 0.03)',
+                        border: isCorrect ? '1px solid rgba(52, 211, 153, 0.35)' : '1px solid transparent',
+                        color: isCorrect ? 'var(--ok)' : 'var(--text-2)',
+                        fontSize: '13px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
                       }}
                     >
-                      <span style={{ fontWeight: 700, width: '20px' }}>
+                      <span style={{ fontWeight: 600, width: '18px' }}>
                         {['A', 'B', 'C', 'D'][optIdx] || optIdx + 1}.
                       </span>
-                      <span style={{ flex: 1 }}>{opt}</span>
-                      {tag}
+                      <span>{opt}</span>
+                      {isCorrect && (
+                        <span style={{ marginLeft: 'auto', fontSize: '11px', fontWeight: 600 }}>
+                          ✓ Correct Answer
+                        </span>
+                      )}
                     </div>
                   );
                 })}
               </div>
 
               {m.explanation && (
-                <div style={{ fontSize: '0.86rem', color: 'var(--text-secondary)', background: 'rgba(255, 255, 255, 0.02)', padding: '0.6rem 0.85rem', borderRadius: 'var(--radius-sm)' }}>
-                  <strong>Explanation:</strong> {m.explanation}
+                <div
+                  style={{
+                    fontSize: '12px',
+                    color: 'var(--text-2)',
+                    background: 'rgba(0, 0, 0, 0.3)',
+                    padding: '8px 10px',
+                    borderRadius: '6px',
+                    marginTop: '8px',
+                  }}
+                >
+                  <strong style={{ color: 'var(--text)' }}>Explanation:</strong> {m.explanation}
                 </div>
               )}
             </Card>

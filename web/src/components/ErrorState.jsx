@@ -1,62 +1,77 @@
 import React from 'react';
+import Icon from './Icon';
 
-export default function ErrorState({ error, onRetry, botUsername = '' }) {
+/**
+ * ErrorState: Honest error states for 401, 404, and network errors.
+ * UI_PORTAL.md Section 1, 4 & 5.5.
+ */
+export default function ErrorState({ error, onRetry, botUsername = 'iiucstudypartnerbot' }) {
   const is401 = error?.status === 401 || error?.detail === 'unauthorized';
-  const botLink = botUsername ? `https://t.me/${botUsername}` : 'https://t.me';
+  const botLink = `https://t.me/${botUsername || 'iiucstudypartnerbot'}`;
 
   if (is401) {
     return (
-      <div className="empty-state" style={{ borderColor: 'rgba(239, 68, 68, 0.25)' }}>
-        <div className="empty-icon">🔒</div>
-        <h3 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '0.4rem', color: '#f87171' }}>
-          Session Ended
-        </h3>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '0.92rem', marginBottom: '1.25rem', maxWidth: '420px', margin: '0 auto 1.25rem' }}>
+      <div className="portal-error-card">
+        <div className="error-icon" aria-hidden="true">
+          <Icon name="logout" size={24} color="var(--accent)" />
+        </div>
+        <h3 className="error-title">Session Ended</h3>
+        <p className="error-desc">
           Your session ended. Send <code>/portal</code> to the bot to get a new link.
         </p>
-        <a
-          href={botLink}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="btn btn-primary"
-        >
-          Open Bot in Telegram
-        </a>
+        <div className="error-actions">
+          <a
+            href={botLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="portal-btn-primary"
+          >
+            Open Telegram Bot
+          </a>
+        </div>
       </div>
     );
   }
 
-  const is404 = error?.status === 404 || error?.detail === 'not_found' || error?.detail === 'note_not_found';
+  const is404 =
+    error?.status === 404 ||
+    error?.detail === 'not_found' ||
+    error?.detail === 'note_not_found';
+
   if (is404) {
     return (
-      <div className="empty-state">
-        <div className="empty-icon">🔍</div>
-        <h3 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '0.4rem' }}>
-          Note Not Found
-        </h3>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '0.92rem', marginBottom: '1.25rem', maxWidth: '420px', margin: '0 auto 1.25rem' }}>
+      <div className="portal-error-card">
+        <div className="error-icon" aria-hidden="true">
+          <Icon name="alert" size={24} color="var(--warn)" />
+        </div>
+        <h3 className="error-title">Note Not Found</h3>
+        <p className="error-desc">
           This study note does not exist or belongs to another user.
         </p>
-        <a href="/notes" className="btn btn-secondary">
-          Back to Notes
-        </a>
+        <div className="error-actions">
+          <a href="/notes" className="portal-btn-secondary">
+            Back to Notes
+          </a>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="empty-state" style={{ borderColor: 'rgba(239, 68, 68, 0.25)' }}>
-      <div className="empty-icon">⚠️</div>
-      <h3 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '0.4rem', color: '#f87171' }}>
-        Unable to Load Data
-      </h3>
-      <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1.25rem', maxWidth: '420px', margin: '0 auto 1.25rem' }}>
+    <div className="portal-error-card">
+      <div className="error-icon" aria-hidden="true">
+        <Icon name="alert" size={24} color="var(--accent)" />
+      </div>
+      <h3 className="error-title">Unable to Load Data</h3>
+      <p className="error-desc">
         {error?.message || 'A network error occurred. Please try again.'}
       </p>
       {onRetry && (
-        <button onClick={onRetry} className="btn btn-secondary">
-          Try Again
-        </button>
+        <div className="error-actions">
+          <button onClick={onRetry} className="portal-btn-secondary" type="button">
+            Try Again
+          </button>
+        </div>
       )}
     </div>
   );

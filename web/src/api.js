@@ -90,4 +90,15 @@ export const api = {
 
   // Get history and weekly progress
   getHistory: () => request('/api/history'),
+
+  // Get campus leaderboard ranking
+  getLeaderboard: () => request('/api/leaderboard'),
+
+  // Ask Gemma AI tutor about this note
+  askNote: (noteId, question) =>
+    request(`/api/notes/${encodeURIComponent(noteId)}/ask`, {
+      method: 'POST',
+      body: JSON.stringify({ question }),
+    }),
 };
+

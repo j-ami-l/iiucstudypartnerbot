@@ -1,14 +1,24 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { api } from '../api';
-import Card from '../components/Card';
-import LoadingState from '../components/LoadingState';
+import KpiCard from '../components/KpiCard';
+import ProgressBar from '../components/ProgressBar';
+import PracticeCard from '../components/PracticeCard';
+import NoteCard from '../components/NoteCard';
 import EmptyState from '../components/EmptyState';
 import ErrorState from '../components/ErrorState';
-import { formatLocalDate } from '../utils/date';
+import Skeleton from '../components/Skeleton';
+import Icon from '../components/Icon';
 
+/**
+ * Dashboard page — UI_PORTAL.md Section 5.1
+ * - Gradient title & personalized greeting
+ * - 4 KPI cards (Notes, Quizzes, Accuracy with ProgressBar, Weak topics)
+ * - State-driven PracticeCard with ShinyButton
+ * - Recent notes with NoteCard
+ * - Empty state when no notes
+ */
 export default function Dashboard({ user }) {
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [data, setData] = useState(null);
@@ -33,11 +43,22 @@ export default function Dashboard({ user }) {
   }, []);
 
   const botUsername = user?.bot_username || 'iiucstudypartnerbot';
-  const botPracticeUrl = `https://t.me/${botUsername}?start=practice`;
-  const botBaseUrl = `https://t.me/${botUsername}`;
+  const firstName = user?.name ? user.name.split(' ')[0] : 'there';
+  const isDemoUser = user?.is_demo || false;
 
   if (loading) {
-    return <LoadingState message="Loading your study overview..." />;
+    return (
+      <div className="portal-page">
+        <h1 className="portal-page-title">Study Dashboard</h1>
+        <p className="portal-page-subtitle">Hi, {firstName}. Here is your progress.</p>
+        <div className="portal-kpi-grid">
+          <Skeleton count={4} type="kpi" />
+        </div>
+        <div style={{ marginTop: '24px' }}>
+          <Skeleton count={3} type="note" />
+        </div>
+      </div>
+    );
   }
 
   if (error) {
@@ -46,137 +67,120 @@ export default function Dashboard({ user }) {
 
   if (!data || data.notes_count === 0) {
     return (
-      <div>
-        <h1 className="title-xl">Welcome{user?.name ? `, ${user.name}` : ''}! 👋</h1>
-        <p className="subtitle">Your AI-powered study partner dashboard.</p>
+      <div className="portal-page">
+        <h1 className="portal-page-title">Study Dashboard</h1>
+        <p className="portal-page-subtitle">
+          Hi, {firstName}. Here is your progress.{' '}
+          {isDemoUser && <span style={{ color: 'var(--text-3)' }}>(sample data)</span>}
+        </p>
         <EmptyState
-          icon="📸"
-          title="No Study Notes Yet"
-          description="Send a photo or document of your notes to the bot on Telegram to generate summaries and interactive quizzes."
-          actionText="Send Notes in Telegram"
-          actionHref={botBaseUrl}
+          icon="📚"
+          title="No notes yet"
+          description="Send a photo of your notes to the bot to get started."
+          actionText="Open Telegram Bot"
+          actionHref={`https://t.me/${botUsername}`}
         />
       </div>
     );
   }
 
+  // KPI rule Section 5.1:
+  // Accuracy: "—" when no quizzes yet, otherwise "NN%" with a ProgressBar.
+  const hasQuizzes = data.quizzes_taken > 0;
+  const accuracyDisplay = hasQuizzes && data.accuracy_percent !== null ? `${data.accuracy_percent}%` : '—';
+  
+  // Weak topics: "—" until at least one quiz exists. A real "0" in --ok only after quizzes exist.
+  const weakDisplay = hasQuizzes ? String(data.weak_topics_count) : '—';
+  const weakColor = hasQuizzes
+    ? data.weak_topics_count === 0
+      ? 'var(--ok)'
+      : 'var(--accent-light)'
+    : undefined;
+
   return (
-    <div>
-      <div style={{ marginBottom: '1.5rem' }}>
-        <h1 className="title-xl">Study Dashboard</h1>
-        <p className="subtitle">
-          Welcome back{user?.name ? `, ${user.name}` : ''}! Here is your current learning progress.
+    <div className="portal-page">
+      <div style={{ marginBottom: '20px' }}>
+        <h1 className="portal-page-title">Study Dashboard</h1>
+        <p className="portal-page-subtitle">
+          Hi, {firstName}. Here is your progress.{' '}
+          {isDemoUser && <span style={{ color: 'var(--text-3)' }}>(sample data)</span>}
         </p>
       </div>
 
-      {/* Overview Stat Cards */}
-      <div className="stat-grid">
-        <div className="stat-card">
-          <span className="stat-label">Notes Uploaded</span>
-          <span className="stat-value">{data.notes_count}</span>
-        </div>
-        <div className="stat-card">
-          <span className="stat-label">Quizzes Taken</span>
-          <span className="stat-value">{data.quizzes_taken}</span>
-        </div>
-        <div className="stat-card">
-          <span className="stat-label">Overall Accuracy</span>
-          <span className="stat-value" style={{ color: data.accuracy_percent != null && data.accuracy_percent >= 70 ? 'var(--accent-green)' : 'inherit' }}>
-            {data.accuracy_percent != null ? `${data.accuracy_percent}%` : '—'}
-          </span>
-        </div>
-        <div className="stat-card">
-          <span className="stat-label">Weak Topics</span>
-          <span
-            className="stat-value"
-            style={{ color: data.weak_topics_count > 0 ? 'var(--accent-rose)' : 'var(--accent-green)' }}
-          >
-            {data.weak_topics_count}
-          </span>
-        </div>
+      {/* 4 KPIs: 2 cols phone, 4 cols desktop */}
+      <div className="portal-kpi-grid">
+        <KpiCard
+          label="Notes"
+          value={data.notes_count}
+        />
+        <KpiCard
+          label="Quizzes taken"
+          value={data.quizzes_taken}
+        />
+        <KpiCard
+          label="Accuracy"
+          value={accuracyDisplay}
+          footer={
+            hasQuizzes && data.accuracy_percent !== null ? (
+              <ProgressBar
+                value={data.accuracy_percent}
+                color={data.accuracy_percent >= 70 ? 'var(--ok)' : 'var(--accent)'}
+              />
+            ) : null
+          }
+        />
+        <KpiCard
+          label="Weak topics"
+          value={weakDisplay}
+          valueColor={weakColor}
+          subtext={hasQuizzes && data.weak_topics_count === 0 ? 'All mastered' : undefined}
+        />
       </div>
 
-      {/* Practice Callout Banner */}
-      <Card style={{ background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(139, 92, 246, 0.12))', border: '1px solid rgba(59, 130, 246, 0.25)', marginBottom: '2rem' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          <div>
-            <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '0.25rem' }}>
-              🎯 Interactive Telegram Practice
-            </h3>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem' }}>
-              Practice questions you previously missed to strengthen your weak topics.
-            </p>
-          </div>
-          <div>
-            <a
-              href={botPracticeUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn btn-primary"
-            >
-              Start Practice in Bot
-            </a>
-          </div>
-        </div>
-      </Card>
+      {/* Practice CTA (State-driven card) */}
+      <PracticeCard
+        quizzesTaken={data.quizzes_taken}
+        weakCount={data.weak_topics_count}
+        botUsername={botUsername}
+      />
 
       {/* Recent Notes Section */}
-      <div style={{ marginBottom: '1.5rem' }}>
-        <div className="section-title">
-          <span>Recent Notes</span>
-          <Link to="/notes" style={{ fontSize: '0.88rem', color: 'var(--accent-primary)', fontWeight: 600 }}>
-            View All ({data.notes_count}) →
+      <div style={{ marginTop: '28px' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '12px',
+          }}
+        >
+          <h2 className="portal-section-title" style={{ margin: 0 }}>
+            Recent notes
+          </h2>
+          <Link
+            to="/notes"
+            style={{
+              color: 'var(--accent-light)',
+              fontSize: '13px',
+              fontWeight: 500,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              minHeight: '44px',
+            }}
+          >
+            <span>View all</span>
+            <Icon name="arrow-right" size={14} />
           </Link>
         </div>
 
-        {data.recent_notes.length === 0 ? (
-          <EmptyState
-            icon="📝"
-            title="No Recent Notes"
-            description="Take your first quiz in Telegram to see your notes here."
-            actionText="Open Telegram"
-            actionHref={botBaseUrl}
-          />
-        ) : (
-          <div>
-            {data.recent_notes.map((note) => {
-              const localDate = formatLocalDate(note.created_at);
-
-              return (
-                <Card
-                  key={note.id}
-                  clickable
-                  onClick={() => navigate(`/notes/${note.id}`)}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '0.5rem' }}>
-                    <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                      {note.title || `Study Note #${note.id}`}
-                    </h3>
-                    <div style={{ display: 'flex', gap: '0.4rem', flexShrink: 0 }}>
-                      <span className="badge badge-blue">{note.language.toUpperCase()}</span>
-                      {note.last_score != null ? (
-                        <span className="badge badge-green">
-                          {note.last_score}/{note.last_total}
-                        </span>
-                      ) : note.quiz_ready ? (
-                        <span className="badge badge-amber">Quiz Ready</span>
-                      ) : null}
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', alignItems: 'center', marginTop: '0.75rem' }}>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>📅 {localDate}</span>
-                    {note.topics && note.topics.length > 0 && (
-                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginLeft: '0.5rem' }}>
-                        • {note.topics.join(', ')}
-                      </span>
-                    )}
-                  </div>
-                </Card>
-              );
-            })}
-          </div>
-        )}
+        <div className="portal-notes-list">
+          {data.recent_notes && data.recent_notes.length > 0 ? (
+            data.recent_notes.map((note) => <NoteCard key={note.id} note={note} />)
+          ) : (
+            <p style={{ color: 'var(--text-3)', fontSize: '14px' }}>No notes found.</p>
+          )}
+        </div>
       </div>
     </div>
   );

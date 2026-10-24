@@ -1,12 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../api';
 import Card from '../components/Card';
+import Badge from '../components/Badge';
 import Bars from '../components/Bars';
-import LoadingState from '../components/LoadingState';
 import EmptyState from '../components/EmptyState';
 import ErrorState from '../components/ErrorState';
-import { formatLocalDateTime } from '../utils/date';
+import Skeleton from '../components/Skeleton';
+import { timeAgo, fullDate } from '../format';
 
+/**
+ * Quiz History page — UI_PORTAL.md Section 5.6
+ * 6-week SVG/CSS accuracy bar chart with Bars, and chronological quiz attempts.
+ */
 export default function History({ user }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -35,7 +40,13 @@ export default function History({ user }) {
   const botBaseUrl = `https://t.me/${botUsername}`;
 
   if (loading) {
-    return <LoadingState message="Loading your quiz history & trend..." />;
+    return (
+      <div className="portal-page">
+        <h1 className="portal-page-title">Quiz History</h1>
+        <p className="portal-page-subtitle">Track your accuracy over time and review past quizzes.</p>
+        <Skeleton count={3} type="note" />
+      </div>
+    );
   }
 
   if (error) {
@@ -46,12 +57,12 @@ export default function History({ user }) {
 
   if (!hasData || data.attempts.length === 0) {
     return (
-      <div>
-        <h1 className="title-xl">Quiz History</h1>
-        <p className="subtitle">Track your accuracy over time and review past quizzes.</p>
+      <div className="portal-page">
+        <h1 className="portal-page-title">Quiz History</h1>
+        <p className="portal-page-subtitle">Track your accuracy over time and review past quizzes.</p>
         <EmptyState
           icon="📊"
-          title="No Quiz History Yet"
+          title="No quiz history yet"
           description="Take quizzes on Telegram after uploading your study notes to see your weekly performance trend here."
           actionText="Take a Quiz in Telegram"
           actionHref={botBaseUrl}
@@ -61,20 +72,20 @@ export default function History({ user }) {
   }
 
   return (
-    <div>
-      <div style={{ marginBottom: '1.5rem' }}>
-        <h1 className="title-xl">Quiz History & Analytics</h1>
-        <p className="subtitle">6-week accuracy trends and past quiz attempts.</p>
+    <div className="portal-page">
+      <div style={{ marginBottom: '20px' }}>
+        <h1 className="portal-page-title">Quiz History</h1>
+        <p className="portal-page-subtitle">6-week accuracy trends and past quiz attempts.</p>
       </div>
 
       {/* 6-Week Progress Trend */}
       {data.weekly && data.weekly.length > 0 && (
-        <Card style={{ marginBottom: '2rem' }}>
-          <h2 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span>📈</span> Weekly Accuracy Trend (Last 6 Weeks)
+        <Card style={{ marginBottom: '24px' }}>
+          <h2 className="portal-section-title" style={{ marginBottom: '4px' }}>
+            Weekly Accuracy Trend
           </h2>
-          <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)' }}>
-            Aggregated percentage of correct answers per week.
+          <p style={{ fontSize: '13px', color: 'var(--text-2)', marginBottom: '8px' }}>
+            Aggregated percentage of correct answers per week over the last 6 weeks.
           </p>
           <Bars weekly={data.weekly} />
         </Card>
@@ -82,33 +93,34 @@ export default function History({ user }) {
 
       {/* Attempts Log */}
       <div>
-        <h2 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span>⏱️</span> Past Quiz Attempts ({data.attempts.length})
+        <h2 className="portal-section-title" style={{ marginBottom: '14px' }}>
+          Past Quiz Attempts ({data.attempts.length})
         </h2>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {data.attempts.map((att, idx) => {
-            const attemptDate = formatLocalDateTime(att.created_at);
+            const relativeTime = timeAgo(att.created_at);
+            const exactDate = fullDate(att.created_at);
             const percent = att.total > 0 ? Math.round((att.score / att.total) * 100) : 0;
+            const isPassing = percent >= 70;
 
             return (
-              <Card key={idx} style={{ padding: '0.9rem 1.15rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem' }}>
+              <Card key={idx} style={{ padding: '14px 18px', marginBottom: 0 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
                   <div>
-                    <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.2rem' }}>
+                    <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text)', marginBottom: '2px' }}>
                       {att.title || `Note #${att.note_id}`}
                     </h3>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                      📅 {attemptDate}
-                    </div>
+                    <span title={exactDate} style={{ fontSize: '12px', color: 'var(--text-3)' }}>
+                      {relativeTime}
+                    </span>
                   </div>
 
-                  <span
-                    className={`badge ${percent >= 70 ? 'badge-green' : percent >= 50 ? 'badge-amber' : 'badge-rose'}`}
-                    style={{ fontSize: '0.88rem', padding: '0.35rem 0.75rem' }}
-                  >
-                    {att.score}/{att.total} ({percent}%)
-                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Badge variant={isPassing ? 'ok' : 'accent'}>
+                      {att.score}/{att.total} ({percent}%)
+                    </Badge>
+                  </div>
                 </div>
               </Card>
             );

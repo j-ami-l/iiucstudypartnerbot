@@ -6,10 +6,18 @@ STRINGS: Dict[str, Dict[str, str]] = {
     "en": {
         "welcome": (
             "👋 <b>Welcome to SnapStudy AI!</b>\n\n"
-            "Send me a clear photo of your handwritten notes, textbook page, "
-            "or lecture slide 📷\n\n"
-            "Gemma 4 will analyze your notes, summarize key points, explain "
-            "difficult terms, and generate a 5-question practice quiz!"
+            "I'm your personal AI study companion powered by Gemma 4.\n\n"
+            "🚀 <b>How to Get Started:</b>\n"
+            "1️⃣ <b>Snap & Send:</b> Take a photo of your handwritten notes, textbook page, or slide and send it here 📷\n"
+            "2️⃣ <b>Review & Quiz:</b> Get instant bullet summaries, key concept explanations, and an interactive 5-question quiz 📝\n"
+            "3️⃣ <b>Practice Weak Topics:</b> Use /practice to revisit mistakes and /weak to see your accuracy breakdown 🎯\n"
+            "4️⃣ <b>Web Portal:</b> Use /portal to open your web dashboard with 3D flashcards and classmate challenges 💻\n\n"
+            "📌 <b>Quick Commands:</b>\n"
+            "• /portal — Open your personal web study dashboard\n"
+            "• /weak — View weak topics & accuracy breakdown\n"
+            "• /practice — Practice questions you got wrong\n"
+            "• /help — Full instructions & photo tips\n\n"
+            "👉 <i>Send a photo of your notes now to begin!</i>"
         ),
         "help": (
             "📖 <b>How to use SnapStudy AI:</b>\n\n"

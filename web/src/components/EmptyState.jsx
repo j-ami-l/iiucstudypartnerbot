@@ -1,33 +1,37 @@
 import React from 'react';
 
+/**
+ * EmptyState: Designed honest empty state for Dashboards and Lists.
+ * UI_PORTAL.md Section 1, 4 & 5.1.
+ */
 export default function EmptyState({
   icon = '📚',
-  title = 'No items found',
+  title = 'No notes yet',
   description = 'Send a photo of your notes to the bot to get started.',
-  actionText,
+  actionText = 'Open Telegram Bot',
   actionHref,
   onAction,
 }) {
   return (
-    <div className="empty-state">
-      <div className="empty-icon">{icon}</div>
-      <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.4rem' }}>{title}</h3>
-      <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1.25rem', maxWidth: '420px', margin: '0 auto 1.25rem' }}>
-        {description}
-      </p>
+    <div className="portal-empty-state">
+      <div className="empty-state-icon" aria-hidden="true">
+        {icon}
+      </div>
+      <h3 className="empty-state-title">{title}</h3>
+      <p className="empty-state-desc">{description}</p>
       {actionHref && (
         <a
           href={actionHref}
           target="_blank"
           rel="noopener noreferrer"
-          className="btn btn-primary"
+          className="portal-btn-primary"
         >
-          {actionText || 'Open Telegram Bot'}
+          {actionText}
         </a>
       )}
       {onAction && !actionHref && (
-        <button onClick={onAction} className="btn btn-primary">
-          {actionText || 'Continue'}
+        <button onClick={onAction} className="portal-btn-primary" type="button">
+          {actionText}
         </button>
       )}
     </div>

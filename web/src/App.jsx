@@ -9,6 +9,7 @@ import NoteDetail from './pages/NoteDetail';
 import Weak from './pages/Weak';
 import Mistakes from './pages/Mistakes';
 import History from './pages/History';
+import Leaderboard from './pages/Leaderboard';
 import Settings from './pages/Settings';
 
 export default function App() {
@@ -89,6 +90,16 @@ export default function App() {
           element={
             <Layout user={user}>
               <History user={user} />
+            </Layout>
+          }
+        />
+
+        {/* Campus Study League Leaderboard */}
+        <Route
+          path="/leaderboard"
+          element={
+            <Layout user={user}>
+              <Leaderboard user={user} />
             </Layout>
           }
         />

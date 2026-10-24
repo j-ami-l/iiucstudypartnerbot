@@ -14,8 +14,11 @@ from portal.auth import (
 )
 from portal.deps import get_current_user
 from portal.schemas import (
+    AskQuestionRequest,
+    AskQuestionResponse,
     DashboardResponse,
     HistoryResponse,
+    LeaderboardItem,
     MeResponse,
     MistakeItem,
     NoteDetailResponse,
@@ -128,3 +131,44 @@ def get_history(user_id: int = Depends(get_current_user)):
     """Return past quiz attempts and 6-week accuracy trend."""
     data = db_stats.get_history_stats_sync(user_id)
     return HistoryResponse(**data)
+
+
+@router.get("/leaderboard", response_model=List[LeaderboardItem])
+def get_leaderboard(user_id: int = Depends(get_current_user)):
+    """Return weekly campus leaderboard ranking top active students."""
+    board = db_stats.get_leaderboard_sync(user_id)
+    return [LeaderboardItem(**b) for b in board]
+
+
+@router.post("/notes/{note_id}/ask", response_model=AskQuestionResponse)
+async def ask_ai_tutor(
+    note_id: int,
+    payload: AskQuestionRequest,
+    user_id: int = Depends(get_current_user),
+):
+    """Ask Gemma AI tutor an interactive question about a study note."""
+    note = db_stats.get_user_note_detail_sync(user_id, note_id)
+    if not note:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="note_not_found"
+        )
+
+    from app.ai.gemma_client import GemmaClient
+
+    title = note.get("title") or f"Study Note #{note_id}"
+    summary = note.get("summary_text") or ""
+    system_prompt = (
+        "You are SnapStudy AI, an expert, encouraging university study tutor. "
+        f"The student is asking a question about their study note titled '{title}'.\n"
+        f"Context from study note:\n{summary}\n\n"
+        "Instructions:\n"
+        "- Answer the student's question clearly, accurately, and concisely based on the study note.\n"
+        "- Use bullet points, bold key terms, and simple real-world analogies where helpful.\n"
+        "- If the note does not contain enough info, provide a helpful general explanation while mentioning that.\n"
+        "- Keep the tone positive and academic. Respond in the same language as the question (English or Bengali)."
+    )
+
+    client = GemmaClient()
+    answer = await client.generate(system_prompt, payload.question.strip())
+    return AskQuestionResponse(answer=answer)
+

@@ -1,14 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
-import Card from '../components/Card';
-import LoadingState from '../components/LoadingState';
+import NoteCard from '../components/NoteCard';
 import EmptyState from '../components/EmptyState';
 import ErrorState from '../components/ErrorState';
-import { formatLocalDate } from '../utils/date';
+import Skeleton from '../components/Skeleton';
 
+/**
+ * Notes list page — UI_PORTAL.md Section 5.2
+ * - Title "Notes"
+ * - Vertical list of NoteCard
+ * - 3 skeleton cards while loading
+ * - Empty state with link to Telegram bot
+ */
 export default function Notes({ user }) {
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [items, setItems] = useState([]);
@@ -38,10 +42,15 @@ export default function Notes({ user }) {
   }, []);
 
   const botUsername = user?.bot_username || 'iiucstudypartnerbot';
-  const botBaseUrl = `https://t.me/${botUsername}`;
 
   if (loading && items.length === 0) {
-    return <LoadingState message="Loading your study notes..." />;
+    return (
+      <div className="portal-page">
+        <h1 className="portal-page-title">Notes</h1>
+        <p className="portal-page-subtitle">Your study notes and practice summaries.</p>
+        <Skeleton count={3} type="note" />
+      </div>
+    );
   }
 
   if (error) {
@@ -50,89 +59,44 @@ export default function Notes({ user }) {
 
   if (total === 0) {
     return (
-      <div>
-        <h1 className="title-xl">My Study Notes</h1>
-        <p className="subtitle">All notes and quiz summaries generated from your uploads.</p>
+      <div className="portal-page">
+        <h1 className="portal-page-title">Notes</h1>
+        <p className="portal-page-subtitle">Your study notes and practice summaries.</p>
         <EmptyState
           icon="📚"
-          title="No Notes Found"
-          description="You haven't uploaded any study notes yet. Send a photo or document to the bot in Telegram to get started!"
-          actionText="Send Notes in Telegram"
-          actionHref={botBaseUrl}
+          title="No notes yet"
+          description="Send a photo of your notes to the bot to get started."
+          actionText="Open Telegram Bot"
+          actionHref={`https://t.me/${botUsername}`}
         />
       </div>
     );
   }
 
   return (
-    <div>
-      <div style={{ marginBottom: '1.5rem' }}>
-        <h1 className="title-xl">My Study Notes</h1>
-        <p className="subtitle">
+    <div className="portal-page">
+      <div style={{ marginBottom: '20px' }}>
+        <h1 className="portal-page-title">Notes</h1>
+        <p className="portal-page-subtitle">
           Showing {items.length} of {total} notes in your library.
         </p>
       </div>
 
-      <div>
-        {items.map((note) => {
-          const localDate = formatLocalDate(note.created_at);
-
-          return (
-            <Card
-              key={note.id}
-              clickable
-              onClick={() => navigate(`/notes/${note.id}`)}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '0.5rem' }}>
-                <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                  {note.title || `Study Note #${note.id}`}
-                </h3>
-                <div style={{ display: 'flex', gap: '0.4rem', flexShrink: 0 }}>
-                  <span className="badge badge-blue">{note.language.toUpperCase()}</span>
-                  {note.last_score != null ? (
-                    <span className="badge badge-green">
-                      Score: {note.last_score}/{note.last_total}
-                    </span>
-                  ) : note.quiz_ready ? (
-                    <span className="badge badge-amber">Quiz Ready</span>
-                  ) : null}
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center', marginTop: '0.75rem' }}>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>📅 {localDate}</span>
-                {note.topics && note.topics.length > 0 && (
-                  <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                    • Topics: {note.topics.join(', ')}
-                  </span>
-                )}
-              </div>
-            </Card>
-          );
-        })}
+      <div className="portal-notes-list">
+        {items.map((note) => (
+          <NoteCard key={note.id} note={note} />
+        ))}
       </div>
 
-      {/* Pagination Controls */}
-      {total > limit && (
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '2rem' }}>
-          <button
-            onClick={() => fetchNotes(Math.max(0, offset - limit))}
-            disabled={offset === 0}
-            className="btn btn-secondary"
-            style={{ opacity: offset === 0 ? 0.5 : 1 }}
-          >
-            ← Previous
-          </button>
-          <span style={{ fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
-            Page {Math.floor(offset / limit) + 1} of {Math.ceil(total / limit)}
-          </span>
+      {total > items.length && (
+        <div style={{ marginTop: '24px', textAlign: 'center' }}>
           <button
             onClick={() => fetchNotes(offset + limit)}
-            disabled={offset + limit >= total}
-            className="btn btn-secondary"
-            style={{ opacity: offset + limit >= total ? 0.5 : 1 }}
+            className="portal-btn-secondary"
+            disabled={loading}
+            type="button"
           >
-            Next →
+            {loading ? 'Loading…' : 'Load more notes'}
           </button>
         </div>
       )}

@@ -114,3 +114,27 @@ class HistoryResponse(BaseModel):
 
     attempts: List[HistoryAttemptItem] = Field(default_factory=list)
     weekly: List[WeeklyHistoryItem] = Field(default_factory=list)
+
+
+class LeaderboardItem(BaseModel):
+    """Campus leaderboard entry for /api/leaderboard."""
+
+    rank: int
+    name: str
+    quizzes_taken: int
+    total_questions: int
+    accuracy_percent: int
+    is_me: bool = False
+
+
+class AskQuestionRequest(BaseModel):
+    """Payload for asking the AI tutor a question about a study note."""
+
+    question: str = Field(..., min_length=2, max_length=1000)
+
+
+class AskQuestionResponse(BaseModel):
+    """Gemma AI response to student's question."""
+
+    answer: str
+

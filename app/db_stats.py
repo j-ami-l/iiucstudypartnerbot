@@ -576,3 +576,46 @@ def get_history_stats_sync(telegram_id: int) -> Dict[str, Any]:
 
         return {"attempts": attempts, "weekly": weekly}
 
+
+def get_leaderboard_sync(
+    current_user_id: int, limit: int = 20
+) -> List[Dict[str, Any]]:
+    """Retrieve top active students for the campus leaderboard."""
+    with _get_connection() as conn:
+        rows = conn.execute(
+            """
+            SELECT
+                u.telegram_id,
+                COALESCE(u.name, 'Student #' || substr(u.telegram_id, -4)) as display_name,
+                COUNT(DISTINCT qz.id) as quizzes_taken,
+                COUNT(qa.id) as total_questions,
+                COALESCE(SUM(CASE WHEN qa.is_correct = 1 THEN 1 ELSE 0 END), 0) as correct_questions,
+                CASE
+                    WHEN COUNT(qa.id) > 0 THEN ROUND(100.0 * SUM(CASE WHEN qa.is_correct = 1 THEN 1 ELSE 0 END) / COUNT(qa.id))
+                    ELSE 0
+                END as accuracy_percent
+            FROM users u
+            LEFT JOIN quiz_attempts qz ON qz.telegram_id = u.telegram_id
+            LEFT JOIN question_attempts qa ON qa.telegram_id = u.telegram_id
+            GROUP BY u.telegram_id, u.name
+            ORDER BY quizzes_taken DESC, accuracy_percent DESC, total_questions DESC
+            LIMIT ?;
+            """,
+            (limit,),
+        ).fetchall()
+
+        result = []
+        for rank, r in enumerate(rows, 1):
+            result.append(
+                {
+                    "rank": rank,
+                    "name": r["display_name"],
+                    "quizzes_taken": int(r["quizzes_taken"]),
+                    "total_questions": int(r["total_questions"]),
+                    "accuracy_percent": int(r["accuracy_percent"]),
+                    "is_me": int(r["telegram_id"]) == current_user_id,
+                }
+            )
+        return result
+
+
