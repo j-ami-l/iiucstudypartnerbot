@@ -1,0 +1,1 @@
+"""SnapStudy AI package."""
