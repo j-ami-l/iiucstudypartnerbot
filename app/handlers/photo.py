@@ -71,16 +71,23 @@ async def photo_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             compressed_bytes, language=lang
         )
 
-        # Save result in user context for quiz flow (F4)
+        # Save result and image in user context for quiz flow and regeneration (F4)
         if context.user_data is not None:
             context.user_data["last_study_result"] = result
+            context.user_data["last_image_bytes"] = compressed_bytes
 
-        # 4. Format and reply with summary, key points, and difficult terms
+        # 4. Format and reply with summary, key points, difficult terms, and action buttons
+        from app.keyboards import summary_keyboard
+
         formatted_text = format_study_summary(result, lang=lang)
         chunks = split_message(formatted_text)
 
-        # Edit status message with first chunk
-        await status_msg.edit_text(chunks[0], parse_mode=ParseMode.HTML)
+        # Edit status message with first chunk and action buttons
+        await status_msg.edit_text(
+            chunks[0],
+            parse_mode=ParseMode.HTML,
+            reply_markup=summary_keyboard(lang),
+        )
 
         # If summary was very long, send any remaining chunks as replies
         for chunk in chunks[1:]:

@@ -6,6 +6,7 @@ from telegram import Update
 from telegram.constants import ParseMode
 from telegram.ext import (
     Application,
+    CallbackQueryHandler,
     CommandHandler,
     ContextTypes,
     MessageHandler,
@@ -14,9 +15,11 @@ from telegram.ext import (
 
 from app.config import settings
 from app.handlers.photo import non_photo_handler, photo_handler
+from app.handlers.quiz import quiz_callback_handler
 from app.handlers.start import help_handler, start_handler
 from app.i18n import t
 from app.logging_setup import setup_logging
+from app.services.quiz_service import QuizService
 from app.services.study_service import StudyService
 
 logger = logging.getLogger(__name__)
@@ -50,6 +53,7 @@ def build_application() -> Application:
 
     # Register services via bot_data
     app.bot_data["study_service"] = StudyService()
+    app.bot_data["quiz_service"] = QuizService()
 
     # Register command handlers
     app.add_handler(CommandHandler("start", start_handler))
@@ -58,6 +62,9 @@ def build_application() -> Application:
     # Register photo and document image handlers
     app.add_handler(MessageHandler(filters.PHOTO, photo_handler))
     app.add_handler(MessageHandler(filters.Document.IMAGE, photo_handler))
+
+    # Register callback query handler for quiz buttons and actions
+    app.add_handler(CallbackQueryHandler(quiz_callback_handler))
 
     # Polite fallback for non-photo text messages
     app.add_handler(

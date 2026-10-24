@@ -32,6 +32,28 @@ STRINGS: Dict[str, Dict[str, str]] = {
         "api_error": "I'm having trouble reading notes right now. Try again in a minute.",
         "invalid_json_error": "I couldn't understand that photo. Try a clearer, closer shot.",
         "error_generic": "Something went wrong. Please try again.",
+        # Quiz strings
+        "btn_quiz": "📝 Quiz",
+        "btn_regen": "🔁 Regenerate",
+        "btn_next": "Next ➡️",
+        "btn_see_score": "See Score 📊",
+        "btn_retry_quiz": "🔁 Retry Quiz",
+        "btn_new_note": "📷 New Note",
+        "question_header": "📝 <b>Question {current} of {total}</b>",
+        "answer_correct": "✅ <b>Correct!</b>",
+        "answer_incorrect": "❌ <b>Incorrect!</b> Correct answer: <b>{correct_letter}</b>",
+        "explanation_prefix": "💡 <b>Explanation:</b>",
+        "quiz_completed": (
+            "🎉 <b>Quiz Completed!</b>\n\n"
+            "Your Score: <b>{score} / {total}</b> ({percentage}%)\n\n"
+            "{feedback}"
+        ),
+        "feedback_perfect": "🌟 Outstanding! You mastered this note completely!",
+        "feedback_good": "👏 Great job! A quick review of the key points will make it 100%.",
+        "feedback_retry": "💪 Good effort! Review the summary and give the quiz another shot.",
+        "stale_quiz": "This quiz expired. Send the note again.",
+        "already_answered": "You have already answered this question.",
+        "regenerating": "⏳ Regenerating study summary…",
     },
     "bn": {
         "welcome": (
@@ -61,6 +83,28 @@ STRINGS: Dict[str, Dict[str, str]] = {
         "api_error": "বর্তমানে নোট পড়তে সমস্যা হচ্ছে। একটু পরে আবার চেষ্টা করুন।",
         "invalid_json_error": "ছবিটি বুঝতে পারিনি। আরও কাছ থেকে স্পষ্ট ছবি তুলে পাঠানোর চেষ্টা করুন।",
         "error_generic": "কিছু ভুল হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।",
+        # Quiz strings
+        "btn_quiz": "📝 কুইজ",
+        "btn_regen": "🔁 পুনরায় তৈরি",
+        "btn_next": "পরবর্তী ➡️",
+        "btn_see_score": "স্কোর দেখুন 📊",
+        "btn_retry_quiz": "🔁 আবার চেষ্টা করুন",
+        "btn_new_note": "📷 নতুন নোট",
+        "question_header": "📝 <b>প্রশ্ন {current}/{total}</b>",
+        "answer_correct": "✅ <b>সঠিক উত্তর!</b>",
+        "answer_incorrect": "❌ <b>ভুল উত্তর!</b> সঠিক উত্তর: <b>{correct_letter}</b>",
+        "explanation_prefix": "💡 <b>ব্যাখ্যা:</b>",
+        "quiz_completed": (
+            "🎉 <b>কুইজ সম্পন্ন হয়েছে!</b>\n\n"
+            "আপনার স্কোর: <b>{score} / {total}</b> ({percentage}%)\n\n"
+            "{feedback}"
+        ),
+        "feedback_perfect": "🌟 চমৎকার! আপনি সম্পূর্ণ বিষয়টি আয়ত্ত করেছেন!",
+        "feedback_good": "👏 খুব ভালো হয়েছে! মূল পয়েন্টগুলো আরেকবার দেখে নিলে সম্পূর্ণ প্রস্তুত হবেন।",
+        "feedback_retry": "💪 ভালো চেষ্টা! সারসংক্ষেপটি আরেকবার পড়ে পুনরায় কুইজ দিন।",
+        "stale_quiz": "এই কুইজের মেয়াদ শেষ হয়েছে। আবার নোট পাঠান।",
+        "already_answered": "আপনি ইতিমধ্যে এই প্রশ্নের উত্তর দিয়েছেন।",
+        "regenerating": "⏳ পুনরায় তৈরি করা হচ্ছে…",
     },
 }
 
